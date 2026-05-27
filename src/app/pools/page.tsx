@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { ensureDefaultCompany } from "@/lib/app-context";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 async function createPool(formData: FormData) {
   "use server";
 

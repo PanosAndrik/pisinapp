@@ -3,6 +3,9 @@ import Link from "next/link";
 import { ensureDefaultCompany } from "@/lib/app-context";
 import { prisma } from "@/lib/prisma";
 
+// Do not query Postgres during `next build` (Railway build cannot reach private DB).
+export const dynamic = "force-dynamic";
+
 export default async function Home() {
   const company = await ensureDefaultCompany();
   const [poolCount, visitCount, recentVisits] = await Promise.all([
