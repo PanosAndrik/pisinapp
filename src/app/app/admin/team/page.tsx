@@ -9,6 +9,9 @@ async function addTechnician(formData: FormData) {
   "use server";
 
   const session = await requireAdminSession();
+  const targetCompanyIdRaw = String(formData.get("companyId") ?? "").trim();
+  const companyId =
+    session.role === "SUPER_ADMIN" && targetCompanyIdRaw ? targetCompanyIdRaw : session.companyId;
   const fullName = String(formData.get("fullName") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "").trim();
@@ -17,7 +20,7 @@ async function addTechnician(formData: FormData) {
 
   await prisma.user.create({
     data: {
-      companyId: session.companyId,
+      companyId,
       fullName,
       email,
       passwordHash: hashPassword(password),
@@ -29,10 +32,17 @@ async function addTechnician(formData: FormData) {
   revalidatePath("/app/admin/team");
 }
 
-export default async function AdminTeamPage() {
+type AdminTeamPageProps = {
+  searchParams: Promise<{ companyId?: string }>;
+};
+
+export default async function AdminTeamPage({ searchParams }: AdminTeamPageProps) {
   const session = await requireAdminSession();
+  const params = await searchParams;
+  const companyId =
+    session.role === "SUPER_ADMIN" && params.companyId ? params.companyId : session.companyId;
   const members = await prisma.user.findMany({
-    where: { companyId: session.companyId, isActive: true },
+    where: { companyId, isActive: true },
     orderBy: [{ role: "asc" }, { fullName: "asc" }],
     select: { id: true, fullName: true, email: true, role: true },
   });
@@ -44,6 +54,7 @@ export default async function AdminTeamPage() {
       <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
         <h2 className="text-xl font-semibold text-zinc-900">Add technician</h2>
         <form action={addTechnician} className="mt-4 grid gap-3 sm:grid-cols-2">
+          {session.role === "SUPER_ADMIN" ? <input type="hidden" name="companyId" value={companyId} /> : null}
           <input
             name="fullName"
             placeholder="Technician name"

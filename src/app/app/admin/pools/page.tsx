@@ -9,6 +9,9 @@ async function createPool(formData: FormData) {
   "use server";
 
   const session = await requireAdminSession();
+  const targetCompanyIdRaw = String(formData.get("companyId") ?? "").trim();
+  const companyId =
+    session.role === "SUPER_ADMIN" && targetCompanyIdRaw ? targetCompanyIdRaw : session.companyId;
   const code = String(formData.get("code") ?? "").trim();
   const clientName = String(formData.get("clientName") ?? "").trim();
   const address = String(formData.get("address") ?? "").trim();
@@ -19,7 +22,7 @@ async function createPool(formData: FormData) {
 
   await prisma.pool.create({
     data: {
-      companyId: session.companyId,
+      companyId,
       code,
       clientName,
       address: address || null,
@@ -32,10 +35,17 @@ async function createPool(formData: FormData) {
   revalidatePath("/app/admin");
 }
 
-export default async function AdminPoolsPage() {
+type AdminPoolsPageProps = {
+  searchParams: Promise<{ companyId?: string }>;
+};
+
+export default async function AdminPoolsPage({ searchParams }: AdminPoolsPageProps) {
   const session = await requireAdminSession();
+  const params = await searchParams;
+  const companyId =
+    session.role === "SUPER_ADMIN" && params.companyId ? params.companyId : session.companyId;
   const pools = await prisma.pool.findMany({
-    where: { companyId: session.companyId, isActive: true },
+    where: { companyId, isActive: true },
     orderBy: { createdAt: "desc" },
   });
 
@@ -45,6 +55,7 @@ export default async function AdminPoolsPage() {
       <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
         <h2 className="text-xl font-semibold text-zinc-900">Add pool</h2>
         <form action={createPool} className="mt-4 grid gap-3 sm:grid-cols-2">
+          {session.role === "SUPER_ADMIN" ? <input type="hidden" name="companyId" value={companyId} /> : null}
           <input
             name="code"
             placeholder="Pool code (e.g. ALMA-01)"

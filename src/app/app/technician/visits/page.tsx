@@ -16,6 +16,9 @@ async function createVisit(formData: FormData) {
   "use server";
 
   const session = await requireSession();
+  const targetCompanyIdRaw = String(formData.get("companyId") ?? "").trim();
+  const companyId =
+    session.role === "SUPER_ADMIN" && targetCompanyIdRaw ? targetCompanyIdRaw : session.companyId;
   const poolId = String(formData.get("poolId") ?? "").trim();
   const performedAtRaw = String(formData.get("performedAt") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
@@ -24,7 +27,7 @@ async function createVisit(formData: FormData) {
 
   await prisma.visit.create({
     data: {
-      companyId: session.companyId,
+      companyId,
       poolId,
       technicianId: session.userId,
       performedAt: new Date(performedAtRaw),
@@ -41,19 +44,26 @@ async function createVisit(formData: FormData) {
   revalidatePath("/app/technician");
 }
 
-export default async function TechnicianVisitsPage() {
+type TechnicianVisitsPageProps = {
+  searchParams: Promise<{ companyId?: string }>;
+};
+
+export default async function TechnicianVisitsPage({ searchParams }: TechnicianVisitsPageProps) {
   const session = await requireSession();
+  const params = await searchParams;
+  const companyId =
+    session.role === "SUPER_ADMIN" && params.companyId ? params.companyId : session.companyId;
   const [pools, visits] = await Promise.all([
     prisma.pool.findMany({
-      where: { companyId: session.companyId, isActive: true },
+      where: { companyId, isActive: true },
       orderBy: { code: "asc" },
       select: { id: true, code: true, clientName: true },
     }),
     prisma.visit.findMany({
       where:
         session.role === "TECHNICIAN"
-          ? { companyId: session.companyId, technicianId: session.userId }
-          : { companyId: session.companyId },
+          ? { companyId, technicianId: session.userId }
+          : { companyId },
       orderBy: { performedAt: "desc" },
       take: 30,
       include: { pool: { select: { code: true, clientName: true } } },
@@ -68,6 +78,9 @@ export default async function TechnicianVisitsPage() {
           <p className="text-zinc-600">No pools available yet.</p>
         ) : (
           <form action={createVisit} className="grid gap-3 sm:grid-cols-2">
+            {session.role === "SUPER_ADMIN" ? (
+              <input type="hidden" name="companyId" value={companyId} />
+            ) : null}
             <select name="poolId" className="rounded-lg border border-zinc-300 px-3 py-2" required>
               <option value="">Select pool</option>
               {pools.map((pool) => (

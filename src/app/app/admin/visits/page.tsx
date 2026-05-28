@@ -16,6 +16,9 @@ async function createVisit(formData: FormData) {
   "use server";
 
   const session = await requireAdminSession();
+  const targetCompanyIdRaw = String(formData.get("companyId") ?? "").trim();
+  const companyId =
+    session.role === "SUPER_ADMIN" && targetCompanyIdRaw ? targetCompanyIdRaw : session.companyId;
   const poolId = String(formData.get("poolId") ?? "").trim();
   const performedAtRaw = String(formData.get("performedAt") ?? "").trim();
   const notes = String(formData.get("notes") ?? "").trim();
@@ -24,7 +27,7 @@ async function createVisit(formData: FormData) {
 
   await prisma.visit.create({
     data: {
-      companyId: session.companyId,
+      companyId,
       poolId,
       performedAt: new Date(performedAtRaw),
       ph: parseOptionalDecimal(formData.get("ph")),
@@ -40,16 +43,23 @@ async function createVisit(formData: FormData) {
   revalidatePath("/app/admin");
 }
 
-export default async function AdminVisitsPage() {
+type AdminVisitsPageProps = {
+  searchParams: Promise<{ companyId?: string }>;
+};
+
+export default async function AdminVisitsPage({ searchParams }: AdminVisitsPageProps) {
   const session = await requireAdminSession();
+  const params = await searchParams;
+  const companyId =
+    session.role === "SUPER_ADMIN" && params.companyId ? params.companyId : session.companyId;
   const [pools, visits] = await Promise.all([
     prisma.pool.findMany({
-      where: { companyId: session.companyId, isActive: true },
+      where: { companyId, isActive: true },
       orderBy: { code: "asc" },
       select: { id: true, code: true, clientName: true },
     }),
     prisma.visit.findMany({
-      where: { companyId: session.companyId },
+      where: { companyId },
       orderBy: { performedAt: "desc" },
       take: 30,
       include: { pool: { select: { code: true, clientName: true } } },
@@ -66,6 +76,9 @@ export default async function AdminVisitsPage() {
           <p className="mt-3 text-zinc-600">Create at least one pool first.</p>
         ) : (
           <form action={createVisit} className="mt-4 grid gap-3 sm:grid-cols-2">
+            {session.role === "SUPER_ADMIN" ? (
+              <input type="hidden" name="companyId" value={companyId} />
+            ) : null}
             <select name="poolId" className="rounded-lg border border-zinc-300 px-3 py-2" required>
               <option value="">Select pool</option>
               {pools.map((pool) => (
