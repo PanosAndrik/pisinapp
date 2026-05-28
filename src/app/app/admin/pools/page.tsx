@@ -51,63 +51,63 @@ export default async function AdminPoolsPage({ searchParams }: AdminPoolsPagePro
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-8">
-      <h1 className="text-3xl font-semibold text-zinc-900">Manage Pools</h1>
+      <h1 className="text-3xl font-semibold text-zinc-900">Διαχειριση Πισινων</h1>
       <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-semibold text-zinc-900">Add pool</h2>
+        <h2 className="text-xl font-semibold text-zinc-900">Προσθηκη Πισινας</h2>
         <form action={createPool} className="mt-4 grid gap-3 sm:grid-cols-2">
           {session.role === "SUPER_ADMIN" ? <input type="hidden" name="companyId" value={companyId} /> : null}
           <input
             name="code"
-            placeholder="Pool code (e.g. ALMA-01)"
+            placeholder="Κωδικος πισινας (π.χ. ALMA-01)"
             className="rounded-lg border border-zinc-300 px-3 py-2"
             required
           />
           <input
             name="clientName"
-            placeholder="Client name"
+            placeholder="Ονομα πελατη"
             className="rounded-lg border border-zinc-300 px-3 py-2"
             required
           />
           <input
             name="address"
-            placeholder="Address"
+            placeholder="Διευθυνση"
             className="rounded-lg border border-zinc-300 px-3 py-2 sm:col-span-2"
           />
           <input
             name="volumeLiters"
             type="number"
             min={0}
-            placeholder="Volume (liters)"
+            placeholder="Ογκος (λιτρα)"
             className="rounded-lg border border-zinc-300 px-3 py-2"
           />
           <input
             name="notes"
-            placeholder="Notes"
+            placeholder="Παρατηρησεις"
             className="rounded-lg border border-zinc-300 px-3 py-2"
           />
           <button
             type="submit"
             className="rounded-lg bg-zinc-900 px-4 py-2 font-medium text-white hover:bg-zinc-700 sm:col-span-2"
           >
-            Save pool
+            Αποθηκευση πισινας
           </button>
         </form>
       </section>
 
       <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-semibold text-zinc-900">Active pools ({pools.length})</h2>
+        <h2 className="text-xl font-semibold text-zinc-900">Ενεργες πισινες ({pools.length})</h2>
         <div className="mt-4 space-y-3">
           {pools.length === 0 ? (
-            <p className="text-zinc-600">No pools yet. Add your first one above.</p>
+            <p className="text-zinc-600">Δεν υπαρχουν πισινες ακομα. Προσθεσε την πρωτη.</p>
           ) : (
             pools.map((pool) => (
               <article key={pool.id} className="rounded-xl border border-zinc-200 p-4">
                 <p className="font-semibold text-zinc-900">
                   {pool.code} - {pool.clientName}
                 </p>
-                <p className="text-sm text-zinc-600">{pool.address ?? "No address"}</p>
+                <p className="text-sm text-zinc-600">{pool.address ?? "Χωρις διευθυνση"}</p>
                 <p className="text-sm text-zinc-600">
-                  Volume: {pool.volumeLiters?.toLocaleString("el-GR") ?? "-"} L
+                  Ογκος: {pool.volumeLiters?.toLocaleString("el-GR") ?? "-"} L
                 </p>
               </article>
             ))

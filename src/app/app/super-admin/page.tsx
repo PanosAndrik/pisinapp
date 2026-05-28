@@ -148,31 +148,31 @@ export default async function SuperAdminPage({ searchParams }: SuperAdminPagePro
       <h1 className="text-3xl font-semibold text-zinc-900">Super Admin</h1>
 
       <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-semibold text-zinc-900">Create company + boss account</h2>
+        <h2 className="text-xl font-semibold text-zinc-900">Δημιουργια εταιρειας + λογαριασμου boss</h2>
         <form action={createCompanyWithBoss} className="mt-4 grid gap-3 sm:grid-cols-2">
           <input
             name="companyName"
-            placeholder="Company name"
+            placeholder="Ονομα εταιρειας"
             required
             className="rounded-lg border border-zinc-300 px-3 py-2 sm:col-span-2"
           />
           <input
             name="bossName"
-            placeholder="Boss full name"
+            placeholder="Ονοματεπωνυμο boss"
             required
             className="rounded-lg border border-zinc-300 px-3 py-2"
           />
           <input
             name="bossEmail"
             type="email"
-            placeholder="Boss email"
+            placeholder="Email boss"
             required
             className="rounded-lg border border-zinc-300 px-3 py-2"
           />
           <input
             name="bossPassword"
             type="password"
-            placeholder="Boss password"
+            placeholder="Κωδικος boss"
             required
             className="rounded-lg border border-zinc-300 px-3 py-2 sm:col-span-2"
           />
@@ -180,7 +180,7 @@ export default async function SuperAdminPage({ searchParams }: SuperAdminPagePro
             type="submit"
             className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 sm:col-span-2"
           >
-            Create company
+            Δημιουργια εταιρειας
           </button>
         </form>
       </section>
@@ -188,7 +188,7 @@ export default async function SuperAdminPage({ searchParams }: SuperAdminPagePro
       <section className="space-y-4">
         {companies.length === 0 ? (
           <div className="rounded-2xl border border-zinc-200 bg-white p-6 text-zinc-600 shadow-sm">
-            No companies yet.
+            Δεν υπαρχουν εταιρειες ακομα.
           </div>
         ) : (
           companies.map((company) => (
@@ -197,7 +197,7 @@ export default async function SuperAdminPage({ searchParams }: SuperAdminPagePro
                 <div>
                   <h3 className="text-xl font-semibold text-zinc-900">{company.name}</h3>
                   <p className="text-sm text-zinc-600">
-                    Pools: {company._count.pools} | Visits: {company._count.visits}
+                    Πισινες: {company._count.pools} | Επισκεψεις: {company._count.visits}
                   </p>
                 </div>
                 <form action={deleteCompany}>
@@ -207,7 +207,7 @@ export default async function SuperAdminPage({ searchParams }: SuperAdminPagePro
                     disabled={company.id === session.companyId}
                     className="rounded border border-red-300 px-3 py-1.5 text-sm text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Delete company
+                    Διαγραφη εταιρειας
                   </button>
                 </form>
               </div>
@@ -215,11 +215,11 @@ export default async function SuperAdminPage({ searchParams }: SuperAdminPagePro
               <div className="mt-4 grid gap-4 lg:grid-cols-2">
                 <div>
                   <h4 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
-                    Team members
+                    Μελη ομαδας
                   </h4>
                   <div className="mt-2 space-y-2">
                     {company.users.length === 0 ? (
-                      <p className="text-sm text-zinc-600">No active users.</p>
+                      <p className="text-sm text-zinc-600">Δεν υπαρχουν ενεργοι χρηστες.</p>
                     ) : (
                       company.users.map((member) => (
                         <div key={member.id} className="rounded-lg border border-zinc-200 px-3 py-2">
@@ -243,19 +243,19 @@ export default async function SuperAdminPage({ searchParams }: SuperAdminPagePro
                             <input
                               name="password"
                               type="text"
-                              placeholder="Set new password (optional)"
+                              placeholder="Νεος κωδικος (προαιρετικο)"
                               className="rounded border border-zinc-300 px-2 py-1 text-xs"
                             />
                             <button
                               type="submit"
                               className="rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-800 hover:bg-zinc-100"
                             >
-                              Save credentials
+                              Αποθηκευση στοιχειων
                             </button>
                           </form>
                           {params.revealUserId === member.id && params.revealPassword ? (
                             <p className="mt-1 text-xs font-medium text-green-700">
-                              Temporary password: {params.revealPassword}
+                              Προσωρινος κωδικος: {params.revealPassword}
                             </p>
                           ) : null}
                           <form action={resetAnyUserPassword} className="mt-2">
@@ -264,7 +264,7 @@ export default async function SuperAdminPage({ searchParams }: SuperAdminPagePro
                               type="submit"
                               className="rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-800 hover:bg-zinc-100"
                             >
-                              Reset credentials
+                              Επαναφορα στοιχειων
                             </button>
                           </form>
                         </div>
@@ -275,27 +275,27 @@ export default async function SuperAdminPage({ searchParams }: SuperAdminPagePro
 
                 <div>
                   <h4 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
-                    Add technician
+                    Προσθηκη τεχνικου
                   </h4>
                   <form action={addTechnician} className="mt-2 space-y-2">
                     <input type="hidden" name="companyId" value={company.id} />
                     <input
                       name="fullName"
-                      placeholder="Technician name"
+                      placeholder="Ονομα τεχνικου"
                       required
                       className="w-full rounded-lg border border-zinc-300 px-3 py-2"
                     />
                     <input
                       name="email"
                       type="email"
-                      placeholder="Technician email"
+                      placeholder="Email τεχνικου"
                       required
                       className="w-full rounded-lg border border-zinc-300 px-3 py-2"
                     />
                     <input
                       name="password"
                       type="password"
-                      placeholder="Temporary password"
+                      placeholder="Προσωρινος κωδικος"
                       required
                       className="w-full rounded-lg border border-zinc-300 px-3 py-2"
                     />
@@ -303,7 +303,7 @@ export default async function SuperAdminPage({ searchParams }: SuperAdminPagePro
                       type="submit"
                       className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700"
                     >
-                      Add technician
+                      Προσθηκη τεχνικου
                     </button>
                   </form>
                 </div>

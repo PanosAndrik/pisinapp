@@ -110,9 +110,16 @@ async function createVisit(formData: FormData) {
     },
   });
 
-  const photoUrls = ["photoUrl1", "photoUrl2", "photoUrl3"]
-    .map((name) => String(formData.get(name) ?? "").trim())
-    .filter(Boolean);
+  const uploadedFiles = formData
+    .getAll("photos")
+    .filter((entry): entry is File => entry instanceof File && entry.size > 0);
+
+  const photoUrls: string[] = [];
+  for (const file of uploadedFiles) {
+    const bytes = Buffer.from(await file.arrayBuffer());
+    // Store inline data URL for now; we can move this to object storage later.
+    photoUrls.push(`data:${file.type || "image/jpeg"};base64,${bytes.toString("base64")}`);
+  }
 
   if (photoUrls.length > 0) {
     await prisma.visitPhoto.createMany({
@@ -260,11 +267,22 @@ export default async function TechnicianVisitsPage({ searchParams }: TechnicianV
               />
             </div>
 
-            <Section title="Φωτογραφιες (προαιρετικο)">
-              <LabeledInput name="photoUrl1" label="Φωτογραφια URL 1" />
-              <LabeledInput name="photoUrl2" label="Φωτογραφια URL 2" />
-              <LabeledInput name="photoUrl3" label="Φωτογραφια URL 3" />
-            </Section>
+            <div className="sm:col-span-2 rounded-xl border border-zinc-200 p-4">
+              <h2 className="text-lg font-semibold text-zinc-900">Φωτογραφιες (προαιρετικο)</h2>
+              <label className="mt-3 block text-sm font-medium text-zinc-700">
+                Ανεβασμα φωτογραφιων
+                <input
+                  name="photos"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+                />
+              </label>
+              <p className="mt-2 text-xs text-zinc-500">
+                Μπορεις να ανεβασεις πολλες φωτογραφιες. Δεν ειναι υποχρεωτικες.
+              </p>
+            </div>
 
             <button
               type="submit"

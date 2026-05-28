@@ -113,29 +113,29 @@ export default async function AdminTeamPage({ searchParams }: AdminTeamPageProps
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-8">
-      <h1 className="text-3xl font-semibold text-zinc-900">Team Management</h1>
+      <h1 className="text-3xl font-semibold text-zinc-900">Διαχειριση Ομαδας</h1>
 
       <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-semibold text-zinc-900">Add technician</h2>
+        <h2 className="text-xl font-semibold text-zinc-900">Προσθηκη Τεχνικου</h2>
         <form action={addTechnician} className="mt-4 grid gap-3 sm:grid-cols-2">
           {session.role === "SUPER_ADMIN" ? <input type="hidden" name="companyId" value={companyId} /> : null}
           <input
             name="fullName"
-            placeholder="Technician name"
+            placeholder="Ονομα τεχνικου"
             required
             className="rounded-lg border border-zinc-300 px-3 py-2"
           />
           <input
             name="email"
             type="email"
-            placeholder="Technician email"
+            placeholder="Email τεχνικου"
             required
             className="rounded-lg border border-zinc-300 px-3 py-2"
           />
           <input
             name="password"
             type="password"
-            placeholder="Temporary password"
+            placeholder="Προσωρινος κωδικος"
             required
             className="rounded-lg border border-zinc-300 px-3 py-2 sm:col-span-2"
           />
@@ -143,13 +143,13 @@ export default async function AdminTeamPage({ searchParams }: AdminTeamPageProps
             type="submit"
             className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 sm:col-span-2"
           >
-            Add technician
+            Προσθηκη τεχνικου
           </button>
         </form>
       </section>
 
       <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-semibold text-zinc-900">Active users</h2>
+        <h2 className="text-xl font-semibold text-zinc-900">Ενεργοι χρηστες</h2>
         <div className="mt-4 space-y-2">
           {members.map((member) => (
             <div key={member.id} className="rounded-lg border border-zinc-200 px-3 py-2">
@@ -176,19 +176,19 @@ export default async function AdminTeamPage({ searchParams }: AdminTeamPageProps
                     <input
                       name="password"
                       type="text"
-                      placeholder="Set new password (optional)"
+                      placeholder="Νεος κωδικος (προαιρετικο)"
                       className="rounded border border-zinc-300 px-2 py-1 text-xs"
                     />
                     <button
                       type="submit"
                       className="rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-800 hover:bg-zinc-100"
                     >
-                      Save credentials
+                      Αποθηκευση στοιχειων
                     </button>
                   </form>
                   {params.revealUserId === member.id && params.revealPassword ? (
                     <p className="mt-1 text-xs font-medium text-green-700">
-                      Temporary password: {params.revealPassword}
+                      Προσωρινος κωδικος: {params.revealPassword}
                     </p>
                   ) : null}
                   <form action={resetTechnicianCredentials} className="mt-2">
@@ -198,7 +198,7 @@ export default async function AdminTeamPage({ searchParams }: AdminTeamPageProps
                       type="submit"
                       className="rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-800 hover:bg-zinc-100"
                     >
-                      Reset credentials
+                      Επαναφορα στοιχειων
                     </button>
                   </form>
                 </>

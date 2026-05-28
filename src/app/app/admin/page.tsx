@@ -30,9 +30,9 @@ export default async function AdminDashboardPage({ searchParams }: AdminDashboar
 
     return (
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-8">
-        <h1 className="text-3xl font-semibold text-zinc-900">Admin Companies Overview</h1>
+        <h1 className="text-3xl font-semibold text-zinc-900">Επισκοπηση Εταιρειων (Admin)</h1>
         <p className="text-zinc-600">
-          Select a company boss to open the same admin controls they use.
+          Επελεξε εταιρεια για να ανοιξεις τα admin εργαλεία που χρησιμοποιει ο boss.
         </p>
 
         <section className="space-y-4">
@@ -42,21 +42,21 @@ export default async function AdminDashboardPage({ searchParams }: AdminDashboar
                 <div>
                   <h2 className="text-xl font-semibold text-zinc-900">{company.name}</h2>
                   <p className="text-sm text-zinc-600">
-                    Pools: {company._count.pools} | Visits: {company._count.visits}
+                    Πισινες: {company._count.pools} | Επισκεψεις: {company._count.visits}
                   </p>
                 </div>
                 <Link
                   href={`/app/admin?companyId=${company.id}`}
                   className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700"
                 >
-                  Open Admin View
+                  Ανοιγμα Admin Προβολης
                 </Link>
               </div>
               <div className="mt-4">
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">Boss accounts</h3>
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">Λογαριασμοι Boss</h3>
                 <div className="mt-2 space-y-2">
                   {company.users.length === 0 ? (
-                    <p className="text-sm text-zinc-600">No boss assigned yet.</p>
+                    <p className="text-sm text-zinc-600">Δεν υπαρχει boss ακομα.</p>
                   ) : (
                     company.users.map((boss) => (
                       <div key={boss.id} className="rounded-lg border border-zinc-200 px-3 py-2">
@@ -87,24 +87,24 @@ export default async function AdminDashboardPage({ searchParams }: AdminDashboar
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-8">
-      <h1 className="text-3xl font-semibold text-zinc-900">Admin Dashboard</h1>
+      <h1 className="text-3xl font-semibold text-zinc-900">Πινακας Admin</h1>
       {session.role === "SUPER_ADMIN" ? (
         <div className="flex gap-3">
           <Link
             href="/app/admin"
             className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-900 hover:bg-zinc-100"
           >
-            Back to all bosses
+            Πισω σε ολους τους bosses
           </Link>
         </div>
       ) : null}
       <section className="grid gap-4 sm:grid-cols-2">
         <article className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-zinc-500">Active pools</p>
+          <p className="text-sm text-zinc-500">Ενεργες πισινες</p>
           <p className="mt-1 text-3xl font-semibold text-zinc-900">{poolCount}</p>
         </article>
         <article className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
-          <p className="text-sm text-zinc-500">Total visits</p>
+          <p className="text-sm text-zinc-500">Συνολικες επισκεψεις</p>
           <p className="mt-1 text-3xl font-semibold text-zinc-900">{visitCount}</p>
         </article>
       </section>
@@ -118,8 +118,8 @@ export default async function AdminDashboardPage({ searchParams }: AdminDashboar
           }
           className="rounded-2xl border border-zinc-200 bg-white p-5 text-zinc-900 shadow-sm transition hover:border-zinc-300"
         >
-          <h2 className="text-xl font-semibold">Manage Pools</h2>
-          <p className="mt-1 text-zinc-600">Create and manage all pools for this company.</p>
+          <h2 className="text-xl font-semibold">Διαχειριση Πισινων</h2>
+          <p className="mt-1 text-zinc-600">Δημιουργια και διαχειριση πισινων της εταιρειας.</p>
         </Link>
         <Link
           href={
@@ -129,8 +129,8 @@ export default async function AdminDashboardPage({ searchParams }: AdminDashboar
           }
           className="rounded-2xl border border-zinc-200 bg-white p-5 text-zinc-900 shadow-sm transition hover:border-zinc-300"
         >
-          <h2 className="text-xl font-semibold">Visit Reports</h2>
-          <p className="mt-1 text-zinc-600">Review service reports and measurements.</p>
+          <h2 className="text-xl font-semibold">Αναφορες Επισκεψεων</h2>
+          <p className="mt-1 text-zinc-600">Ελεγχος αναφορων service και μετρησεων.</p>
         </Link>
         <Link
           href={
@@ -140,16 +140,16 @@ export default async function AdminDashboardPage({ searchParams }: AdminDashboar
           }
           className="rounded-2xl border border-zinc-200 bg-white p-5 text-zinc-900 shadow-sm transition hover:border-zinc-300"
         >
-          <h2 className="text-xl font-semibold">Team Management</h2>
-          <p className="mt-1 text-zinc-600">Manage boss and technician accounts for this company.</p>
+          <h2 className="text-xl font-semibold">Διαχειριση Ομαδας</h2>
+          <p className="mt-1 text-zinc-600">Διαχειριση λογαριασμων boss και τεχνικων.</p>
         </Link>
       </section>
 
       <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-semibold text-zinc-900">Recent visits</h2>
+        <h2 className="text-xl font-semibold text-zinc-900">Τελευταιες επισκεψεις</h2>
         <div className="mt-4 space-y-3">
           {recentVisits.length === 0 ? (
-            <p className="text-zinc-600">No visits recorded yet.</p>
+            <p className="text-zinc-600">Δεν υπαρχουν επισκεψεις ακομα.</p>
           ) : (
             recentVisits.map((visit) => (
               <div key={visit.id} className="rounded-xl border border-zinc-200 p-3">

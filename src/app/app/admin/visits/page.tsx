@@ -68,19 +68,19 @@ export default async function AdminVisitsPage({ searchParams }: AdminVisitsPageP
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-8">
-      <h1 className="text-3xl font-semibold text-zinc-900">Visit Reports</h1>
+      <h1 className="text-3xl font-semibold text-zinc-900">Αναφορες Επισκεψεων</h1>
 
       <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-semibold text-zinc-900">Record new visit</h2>
+        <h2 className="text-xl font-semibold text-zinc-900">Καταχωρηση Νεας Επισκεψης</h2>
         {pools.length === 0 ? (
-          <p className="mt-3 text-zinc-600">Create at least one pool first.</p>
+          <p className="mt-3 text-zinc-600">Πρεπει να υπαρχει τουλαχιστον μια πισινα πρωτα.</p>
         ) : (
           <form action={createVisit} className="mt-4 grid gap-3 sm:grid-cols-2">
             {session.role === "SUPER_ADMIN" ? (
               <input type="hidden" name="companyId" value={companyId} />
             ) : null}
             <select name="poolId" className="rounded-lg border border-zinc-300 px-3 py-2" required>
-              <option value="">Select pool</option>
+              <option value="">Επιλογη πισινας</option>
               {pools.map((pool) => (
                 <option key={pool.id} value={pool.id}>
                   {pool.code} - {pool.clientName}
@@ -104,50 +104,50 @@ export default async function AdminVisitsPage({ searchParams }: AdminVisitsPageP
               name="chlorinePpm"
               type="number"
               step="0.01"
-              placeholder="Chlorine ppm"
+              placeholder="Χλωριο ppm"
               className="rounded-lg border border-zinc-300 px-3 py-2"
             />
             <input
               name="alkalinityPpm"
               type="number"
               step="0.01"
-              placeholder="Alkalinity ppm"
+              placeholder="Αλκαλικοτητα ppm"
               className="rounded-lg border border-zinc-300 px-3 py-2"
             />
             <input
               name="temperatureC"
               type="number"
               step="0.1"
-              placeholder="Temperature C"
+              placeholder="Θερμοκρασια C"
               className="rounded-lg border border-zinc-300 px-3 py-2"
             />
             <input
               name="pressureBar"
               type="number"
               step="0.01"
-              placeholder="Filter pressure bar"
+              placeholder="Πιεση φιλτρου bar"
               className="rounded-lg border border-zinc-300 px-3 py-2"
             />
             <input
               name="notes"
-              placeholder="Notes"
+              placeholder="Παρατηρησεις"
               className="rounded-lg border border-zinc-300 px-3 py-2 sm:col-span-2"
             />
             <button
               type="submit"
               className="rounded-lg bg-zinc-900 px-4 py-2 font-medium text-white hover:bg-zinc-700 sm:col-span-2"
             >
-              Save visit
+              Αποθηκευση επισκεψης
             </button>
           </form>
         )}
       </section>
 
       <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-semibold text-zinc-900">Recent visits</h2>
+        <h2 className="text-xl font-semibold text-zinc-900">Τελευταιες επισκεψεις</h2>
         <div className="mt-4 space-y-3">
           {visits.length === 0 ? (
-            <p className="text-zinc-600">No visits yet.</p>
+            <p className="text-zinc-600">Δεν υπαρχουν επισκεψεις ακομα.</p>
           ) : (
             visits.map((visit) => (
               <article key={visit.id} className="rounded-xl border border-zinc-200 p-4">
@@ -162,10 +162,10 @@ export default async function AdminVisitsPage({ searchParams }: AdminVisitsPageP
                   Alkalinity: {visit.alkalinityPpm?.toString() ?? "-"} ppm
                 </p>
                 <p className="text-sm text-zinc-700">
-                  Temp: {visit.temperatureC?.toString() ?? "-"} C | Pressure:{" "}
+                  Θερμοκρασια: {visit.temperatureC?.toString() ?? "-"} C | Πιεση:{" "}
                   {visit.pressureBar?.toString() ?? "-"} bar
                 </p>
-                <p className="mt-1 text-sm text-zinc-600">{visit.notes ?? "No notes"}</p>
+                <p className="mt-1 text-sm text-zinc-600">{visit.notes ?? "Χωρις παρατηρησεις"}</p>
               </article>
             ))
           )}

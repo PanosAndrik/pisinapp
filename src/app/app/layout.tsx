@@ -32,12 +32,12 @@ export default async function AppLayout({
             </Link>
             {session.role === "SUPER_ADMIN" ? (
               <Link href="/app/super-admin" className="text-sm text-zinc-700 hover:text-zinc-900">
-                Super Admin
+                Υπερ Διαχειριση
               </Link>
             ) : null}
             {session.role === "ADMIN" || session.role === "SUPER_ADMIN" ? (
               <Link href="/app/admin" className="text-sm text-zinc-700 hover:text-zinc-900">
-                Admin
+                Διαχειριση
               </Link>
             ) : null}
             <Link href="/app/technician" className="text-sm text-zinc-700 hover:text-zinc-900">
