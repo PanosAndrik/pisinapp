@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { ensureBootstrapAdmin } from "@/lib/app-context";
 import { getSession, signIn } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 type SignInPageProps = {
   searchParams: Promise<{ error?: string }>;
 };
