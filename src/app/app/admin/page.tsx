@@ -48,6 +48,13 @@ export default async function AdminDashboardPage() {
           <h2 className="text-xl font-semibold">Visit Reports</h2>
           <p className="mt-1 text-zinc-600">Review service reports and measurements.</p>
         </Link>
+        <Link
+          href="/app/admin/team"
+          className="rounded-2xl border border-zinc-200 bg-white p-5 text-zinc-900 shadow-sm transition hover:border-zinc-300"
+        >
+          <h2 className="text-xl font-semibold">Team Management</h2>
+          <p className="mt-1 text-zinc-600">Manage boss and technician accounts for this company.</p>
+        </Link>
       </section>
 
       <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">

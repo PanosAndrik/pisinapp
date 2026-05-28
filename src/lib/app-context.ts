@@ -25,15 +25,30 @@ export async function ensureBootstrapAdmin() {
   if (!email || !password) return;
 
   const company = await ensureDefaultCompany();
-  const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
-  if (existing) return;
+  const existing = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, role: true, companyId: true },
+  });
+  if (existing) {
+    if (existing.role !== "SUPER_ADMIN" || existing.companyId !== company.id) {
+      await prisma.user.update({
+        where: { id: existing.id },
+        data: {
+          role: "SUPER_ADMIN",
+          companyId: company.id,
+          isActive: true,
+        },
+      });
+    }
+    return;
+  }
 
   await prisma.user.create({
     data: {
       email,
       fullName,
       passwordHash: hashPassword(password),
-      role: "ADMIN",
+      role: "SUPER_ADMIN",
       companyId: company.id,
     },
   });

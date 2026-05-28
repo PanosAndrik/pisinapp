@@ -116,3 +116,9 @@ export async function requireAdminSession() {
   if (session.role !== "ADMIN" && session.role !== "SUPER_ADMIN") redirect("/app/technician");
   return session;
 }
+
+export async function requireSuperAdminSession() {
+  const session = await requireSession();
+  if (session.role !== "SUPER_ADMIN") redirect("/app");
+  return session;
+}
