@@ -28,7 +28,7 @@ export default async function AppLayout({
           </div>
           <nav className="flex items-center gap-3">
             <Link href="/app" className="text-sm text-zinc-700 hover:text-zinc-900">
-              Home
+              Αρχικη
             </Link>
             {session.role === "SUPER_ADMIN" ? (
               <Link href="/app/super-admin" className="text-sm text-zinc-700 hover:text-zinc-900">
@@ -41,14 +41,14 @@ export default async function AppLayout({
               </Link>
             ) : null}
             <Link href="/app/technician" className="text-sm text-zinc-700 hover:text-zinc-900">
-              Technician
+              Τεχνικος
             </Link>
             <form action={handleSignOut}>
               <button
                 type="submit"
                 className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm text-zinc-900 hover:bg-zinc-100"
               >
-                Sign out
+                Αποσυνδεση
               </button>
             </form>
           </nav>

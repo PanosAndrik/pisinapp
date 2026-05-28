@@ -5,11 +5,70 @@ import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+const CLEANING_ITEMS = [
+  ["cleanFilter1", "Καθαρισμος Φιλτρου 1"],
+  ["cleanFilter2", "Καθαρισμος Φιλτρου 2"],
+  ["cleanFilter34", "Καθαρισμος Φιλτρου 3/4"],
+  ["pump1", "Αντλια 1"],
+  ["pump2", "Αντλια 2"],
+  ["pump34", "Αντλια 3/4"],
+  ["chlorinator", "Χλωριωτης"],
+  ["vacuum", "Σκουπα"],
+  ["hydromassage", "Υδρομασαζ"],
+  ["waterfallPump", "Αντλια Καταρρακτη"],
+  ["autoDisinfection", "Αυτοματο συστημα απολυμανσης"],
+  ["overflowTank", "Δεξαμενη υπερχειλησης"],
+  ["heatExchanger", "Εναλλακτη"],
+  ["autoCleaning", "Αυτοματος καθαρισμος"],
+  ["saltElectrolysis", "Ηλεκτρολ. Αλατος"],
+  ["leaks", "Διαρροες"],
+  ["thermostat", "Θερμοστατης"],
+  ["dehumidifier", "Αφυγραντης"],
+  ["wellPump", "Αντλια Φρεατιου"],
+  ["ventilation", "Εξαερισμος"],
+  ["pipeSupports", "Στηριγματα Σωληνων"],
+  ["sandCheck", "Ελεγχος αμμου"],
+  ["multiValve", "Πολυβανα Φιλτρων"],
+] as const;
+
+const ELECTRICAL_ITEMS = [
+  ["underwaterLights", "Υποβρυχιοι προβολεις"],
+  ["transformer", "Μετασχηματιστης"],
+  ["electricalPanel", "Ηλεκτρικος πινακας"],
+] as const;
+
+const CHEMICAL_ITEMS = [
+  ["phMinusPlus", "pH minus / plus"],
+  ["chlorineBromine", "Χλωριο / Βρωμιο"],
+  ["oxygen", "Οξυγονο"],
+  ["algaecide", "Αλγοκτονο"],
+  ["flocculant", "Κροκιδωτικο"],
+  ["shockChlorination", "Χλωριωση Σοκ"],
+] as const;
+
 function parseOptionalDecimal(value: FormDataEntryValue | null) {
-  const text = String(value ?? "").trim();
+  const text = String(value ?? "").trim().replace(",", ".");
   if (!text) return null;
   const parsed = Number(text);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function toDateInputValue(now: Date) {
+  const shifted = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+  return shifted.toISOString().slice(0, 10);
+}
+
+function toTimeInputValue(now: Date) {
+  const shifted = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+  return shifted.toISOString().slice(11, 16);
+}
+
+function toRecordBoolean(formData: FormData, items: ReadonlyArray<readonly [string, string]>) {
+  return Object.fromEntries(items.map(([key]) => [key, formData.get(key) === "on"]));
+}
+
+function toRecordText(formData: FormData, items: ReadonlyArray<readonly [string, string]>) {
+  return Object.fromEntries(items.map(([key]) => [key, String(formData.get(key) ?? "").trim()]));
 }
 
 async function createVisit(formData: FormData) {
@@ -20,25 +79,46 @@ async function createVisit(formData: FormData) {
   const companyId =
     session.role === "SUPER_ADMIN" && targetCompanyIdRaw ? targetCompanyIdRaw : session.companyId;
   const poolId = String(formData.get("poolId") ?? "").trim();
-  const performedAtRaw = String(formData.get("performedAt") ?? "").trim();
+  const visitDate = String(formData.get("visitDate") ?? "").trim();
+  const visitTime = String(formData.get("visitTime") ?? "").trim() || "09:00";
   const notes = String(formData.get("notes") ?? "").trim();
 
-  if (!poolId || !performedAtRaw) return;
+  if (!poolId || !visitDate) return;
 
-  await prisma.visit.create({
+  const createdVisit = await prisma.visit.create({
     data: {
       companyId,
       poolId,
       technicianId: session.userId,
-      performedAt: new Date(performedAtRaw),
+      performedAt: new Date(`${visitDate}T${visitTime}:00`),
       ph: parseOptionalDecimal(formData.get("ph")),
+      totalChlorinePpm: parseOptionalDecimal(formData.get("totalChlorinePpm")),
       chlorinePpm: parseOptionalDecimal(formData.get("chlorinePpm")),
+      hardnessPpm: parseOptionalDecimal(formData.get("hardnessPpm")),
       alkalinityPpm: parseOptionalDecimal(formData.get("alkalinityPpm")),
-      temperatureC: parseOptionalDecimal(formData.get("temperatureC")),
+      oxygenConcentrationPpm: parseOptionalDecimal(formData.get("oxygenConcentrationPpm")),
+      cyanuricAcidPpm: parseOptionalDecimal(formData.get("cyanuricAcidPpm")),
+      ironPpm: parseOptionalDecimal(formData.get("ironPpm")),
+      microbeTest: String(formData.get("microbeTest") ?? "").trim() || null,
+      waterClarityOk: formData.get("waterClarityOk") === "on",
       pressureBar: parseOptionalDecimal(formData.get("pressureBar")),
+      pressureBarSecondary: parseOptionalDecimal(formData.get("pressureBarSecondary")),
+      cleaningChecks: toRecordBoolean(formData, CLEANING_ITEMS),
+      electricalChecks: toRecordBoolean(formData, ELECTRICAL_ITEMS),
+      chemicalAdditions: toRecordText(formData, CHEMICAL_ITEMS),
       notes: notes || null,
     },
   });
+
+  const photoUrls = ["photoUrl1", "photoUrl2", "photoUrl3"]
+    .map((name) => String(formData.get(name) ?? "").trim())
+    .filter(Boolean);
+
+  if (photoUrls.length > 0) {
+    await prisma.visitPhoto.createMany({
+      data: photoUrls.map((url) => ({ visitId: createdVisit.id, imageUrl: url })),
+    });
+  }
 
   revalidatePath("/app/technician/visits");
   revalidatePath("/app/technician");
@@ -70,86 +150,137 @@ export default async function TechnicianVisitsPage({ searchParams }: TechnicianV
     }),
   ]);
 
+  const now = new Date();
+
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-8">
-      <h1 className="text-3xl font-semibold text-zinc-900">Record Visit</h1>
-      <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 px-3 py-4 sm:gap-6 sm:px-6 sm:py-8">
+      <h1 className="text-2xl font-semibold text-zinc-900 sm:text-3xl">Καταχωρηση Επισκεψης</h1>
+      <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
         {pools.length === 0 ? (
-          <p className="text-zinc-600">No pools available yet.</p>
+          <p className="text-zinc-600">Δεν υπαρχουν διαθεσιμες πισινες ακομα.</p>
         ) : (
-          <form action={createVisit} className="grid gap-3 sm:grid-cols-2">
-            {session.role === "SUPER_ADMIN" ? (
-              <input type="hidden" name="companyId" value={companyId} />
-            ) : null}
-            <select name="poolId" className="rounded-lg border border-zinc-300 px-3 py-2" required>
-              <option value="">Select pool</option>
-              {pools.map((pool) => (
-                <option key={pool.id} value={pool.id}>
-                  {pool.code} - {pool.clientName}
-                </option>
+          <form action={createVisit} className="grid gap-4 sm:grid-cols-2">
+            {session.role === "SUPER_ADMIN" ? <input type="hidden" name="companyId" value={companyId} /> : null}
+
+            <div className="sm:col-span-2">
+              <label className="mb-1 block text-sm font-medium text-zinc-700">Πισινα</label>
+              <select name="poolId" className="w-full rounded-lg border border-zinc-300 px-3 py-2" required>
+                <option value="">Επιλογη πισινας</option>
+                {pools.map((pool) => (
+                  <option key={pool.id} value={pool.id}>
+                    {pool.code} - {pool.clientName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-zinc-700">Ημερομηνια</label>
+              <input
+                name="visitDate"
+                type="date"
+                defaultValue={toDateInputValue(now)}
+                className="w-full rounded-lg border border-zinc-300 px-3 py-2"
+                required
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-zinc-700">Ωρα</label>
+              <input
+                name="visitTime"
+                type="time"
+                defaultValue={toTimeInputValue(now)}
+                className="w-full rounded-lg border border-zinc-300 px-3 py-2"
+              />
+            </div>
+
+            <Section title="Ελεγχοι">
+              <LabeledInput name="ph" label="Ph" helper="Συνιστωμενη τιμη: 7.2 - 7.8" />
+              <LabeledInput name="totalChlorinePpm" label="Ολικο χλωριο" />
+              <LabeledInput name="chlorinePpm" label="Ελευθερο χλωριο" helper="Συνιστωμενη τιμη: >0.4 ppm" />
+              <LabeledInput name="hardnessPpm" label="Σκληροτητα" />
+              <LabeledInput name="alkalinityPpm" label="Αλκαλικοτητα" />
+              <LabeledInput name="oxygenConcentrationPpm" label="Συγκεντρωση οξυγονο" />
+              <LabeledInput name="cyanuricAcidPpm" label="Ισοκυανουρικο οξυ" />
+              <LabeledInput name="ironPpm" label="Σιδηρος" />
+              <LabeledInput name="microbeTest" label="Τεστ μικροβιων" />
+              <label className="flex items-center justify-between rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-800">
+                Διαυγεια νερου
+                <input name="waterClarityOk" type="checkbox" className="h-4 w-4" />
+              </label>
+              <LabeledInput
+                name="pressureBar"
+                label="Πιεση φιλτρου 1/2"
+                helper="Συνιστωμενη τιμη: <2,0 bars"
+              />
+              <LabeledInput
+                name="pressureBarSecondary"
+                label="Πιεση φιλτρου 3/4"
+                helper="Συνιστωμενη τιμη: <2,0 bars"
+              />
+            </Section>
+
+            <Section title="Καθαρισμοι / Ελεγχοι">
+              {CLEANING_ITEMS.map(([key, label]) => (
+                <label
+                  key={key}
+                  className="flex items-center justify-between rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-800"
+                >
+                  {label}
+                  <input name={key} type="checkbox" className="h-4 w-4" />
+                </label>
               ))}
-            </select>
-            <input
-              name="performedAt"
-              type="datetime-local"
-              className="rounded-lg border border-zinc-300 px-3 py-2"
-              required
-            />
-            <input
-              name="ph"
-              type="number"
-              step="0.01"
-              placeholder="pH"
-              className="rounded-lg border border-zinc-300 px-3 py-2"
-            />
-            <input
-              name="chlorinePpm"
-              type="number"
-              step="0.01"
-              placeholder="Chlorine ppm"
-              className="rounded-lg border border-zinc-300 px-3 py-2"
-            />
-            <input
-              name="alkalinityPpm"
-              type="number"
-              step="0.01"
-              placeholder="Alkalinity ppm"
-              className="rounded-lg border border-zinc-300 px-3 py-2"
-            />
-            <input
-              name="temperatureC"
-              type="number"
-              step="0.1"
-              placeholder="Temperature C"
-              className="rounded-lg border border-zinc-300 px-3 py-2"
-            />
-            <input
-              name="pressureBar"
-              type="number"
-              step="0.01"
-              placeholder="Filter pressure bar"
-              className="rounded-lg border border-zinc-300 px-3 py-2"
-            />
-            <input
-              name="notes"
-              placeholder="Notes"
-              className="rounded-lg border border-zinc-300 px-3 py-2 sm:col-span-2"
-            />
+            </Section>
+
+            <Section title="Ηλεκτρικες εγκαταστασεις">
+              {ELECTRICAL_ITEMS.map(([key, label]) => (
+                <label
+                  key={key}
+                  className="flex items-center justify-between rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-800"
+                >
+                  {label}
+                  <input name={key} type="checkbox" className="h-4 w-4" />
+                </label>
+              ))}
+            </Section>
+
+            <Section title="Προσθηκες χημικων">
+              {CHEMICAL_ITEMS.map(([key, label]) => (
+                <LabeledInput key={key} name={key} label={label} />
+              ))}
+            </Section>
+
+            <div className="sm:col-span-2">
+              <label className="mb-1 block text-sm font-medium text-zinc-700">Παρατηρησεις</label>
+              <textarea
+                name="notes"
+                rows={3}
+                className="w-full rounded-lg border border-zinc-300 px-3 py-2"
+                placeholder="Γραψε παρατηρησεις..."
+              />
+            </div>
+
+            <Section title="Φωτογραφιες (προαιρετικο)">
+              <LabeledInput name="photoUrl1" label="Φωτογραφια URL 1" />
+              <LabeledInput name="photoUrl2" label="Φωτογραφια URL 2" />
+              <LabeledInput name="photoUrl3" label="Φωτογραφια URL 3" />
+            </Section>
+
             <button
               type="submit"
-              className="rounded-lg bg-zinc-900 px-4 py-2 font-medium text-white hover:bg-zinc-700 sm:col-span-2"
+              className="w-full rounded-lg bg-zinc-900 px-4 py-3 text-base font-medium text-white hover:bg-zinc-700 sm:col-span-2"
             >
-              Save visit
+              Αποθηκευση επισκεψης
             </button>
           </form>
         )}
       </section>
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-semibold text-zinc-900">My recent visits</h2>
+      <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
+        <h2 className="text-xl font-semibold text-zinc-900">Τελευταιες επισκεψεις</h2>
         <div className="mt-4 space-y-3">
           {visits.length === 0 ? (
-            <p className="text-zinc-600">No visits yet.</p>
+            <p className="text-zinc-600">Δεν υπαρχουν επισκεψεις ακομα.</p>
           ) : (
             visits.map((visit) => (
               <article key={visit.id} className="rounded-xl border border-zinc-200 p-4">
@@ -159,12 +290,52 @@ export default async function TechnicianVisitsPage({ searchParams }: TechnicianV
                 <p className="text-sm text-zinc-600">
                   {new Date(visit.performedAt).toLocaleString("el-GR")}
                 </p>
-                <p className="mt-1 text-sm text-zinc-700">{visit.notes ?? "No notes"}</p>
+                <p className="mt-1 text-sm text-zinc-700">{visit.notes ?? "Χωρις παρατηρησεις"}</p>
               </article>
             ))
           )}
         </div>
       </section>
     </main>
+  );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="sm:col-span-2 rounded-xl border border-zinc-200 p-4">
+      <h2 className="text-lg font-semibold text-zinc-900">{title}</h2>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">{children}</div>
+    </div>
+  );
+}
+
+function LabeledInput({
+  name,
+  label,
+  helper,
+}: {
+  name: string;
+  label: string;
+  helper?: string;
+}) {
+  return (
+    <div>
+      <label className="mb-1 flex items-center gap-2 text-sm font-medium text-zinc-700">
+        {label}
+        {helper ? <HelpBubble text={helper} /> : null}
+      </label>
+      <input name={name} className="w-full rounded-lg border border-zinc-300 px-3 py-2" />
+    </div>
+  );
+}
+
+function HelpBubble({ text }: { text: string }) {
+  return (
+    <details className="relative inline-block">
+      <summary className="cursor-pointer list-none rounded-full border border-zinc-300 px-1.5 text-xs">?</summary>
+      <div className="absolute left-6 top-0 z-10 w-52 rounded-md border border-zinc-200 bg-white p-2 text-xs text-zinc-700 shadow-md">
+        {text}
+      </div>
+    </details>
   );
 }

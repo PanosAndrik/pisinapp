@@ -80,12 +80,22 @@ model Visit {
   technician      User?        @relation("TechnicianVisits", fields: [technicianId], references: [id], onDelete: SetNull)
   performedAt     DateTime
   ph              Decimal?     @db.Decimal(4, 2)
-  chlorinePpm     Decimal?     @db.Decimal(5, 2)
+  chlorinePpm     Decimal?     @db.Decimal(5, 2) // free chlorine
+  totalChlorinePpm Decimal?    @db.Decimal(5, 2)
+  hardnessPpm     Decimal?     @db.Decimal(6, 2)
   alkalinityPpm   Decimal?     @db.Decimal(6, 2)
+  oxygenConcentrationPpm Decimal? @db.Decimal(6, 2)
   cyanuricAcidPpm Decimal?     @db.Decimal(6, 2)
+  ironPpm         Decimal?     @db.Decimal(6, 2)
+  microbeTest     String?
+  waterClarityOk  Boolean?
   saltPpm         Decimal?     @db.Decimal(7, 2)
   temperatureC    Decimal?     @db.Decimal(4, 1)
   pressureBar     Decimal?     @db.Decimal(4, 2)
+  pressureBarSecondary Decimal? @db.Decimal(4, 2)
+  cleaningChecks  Json?
+  electricalChecks Json?
+  chemicalAdditions Json?
   notes           String?
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt

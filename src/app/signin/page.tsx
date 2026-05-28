@@ -30,13 +30,13 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-10">
       <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-semibold text-zinc-900">Sign in</h1>
+        <h1 className="text-2xl font-semibold text-zinc-900">Συνδεση</h1>
         <p className="mt-1 text-sm text-zinc-600">
-          Access your company dashboard with the credentials created by the admin team.
+          Συνδεσου με τα στοιχεια που σου εδωσε η διαχειριση.
         </p>
         {params.error ? (
           <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-            Invalid credentials. Please try again.
+            Λαθος στοιχεια. Δοκιμασε ξανα.
           </p>
         ) : null}
         <form action={handleSignIn} className="mt-4 space-y-3">
@@ -51,19 +51,19 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
             name="password"
             type="password"
             required
-            placeholder="Password"
+            placeholder="Κωδικος"
             className="w-full rounded-lg border border-zinc-300 px-3 py-2"
           />
           <button
             type="submit"
             className="w-full rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700"
           >
-            Sign in
+            Συνδεση
           </button>
         </form>
       </div>
       <Link href="/" className="mt-4 text-center text-sm text-zinc-600 hover:text-zinc-900">
-        Back to website
+        Πισω στην αρχικη
       </Link>
     </main>
   );

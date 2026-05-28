@@ -9,42 +9,42 @@ export default async function Home() {
       <header className="mb-16 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-zinc-900">Pisinapp</h1>
-          <p className="text-sm text-zinc-600">Pool Maintenance Platform</p>
+          <p className="text-sm text-zinc-600">Πλατφορμα Διαχειρισης Συντηρησης Πισινας</p>
         </div>
         <Link
           href={session ? "/app" : "/signin"}
           className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-100"
         >
-          {session ? "Open App" : "Sign in"}
+          {session ? "Ανοιγμα Εφαρμογης" : "Συνδεση"}
         </Link>
       </header>
 
       <section className="grid gap-8 md:grid-cols-2">
         <div className="space-y-4">
           <h2 className="text-4xl font-bold leading-tight text-zinc-900">
-            Digital pool maintenance for modern service teams.
+            Ψηφιακη συντηρηση πισινας για συγχρονες ομαδες service.
           </h2>
           <p className="text-lg text-zinc-600">
-            Replace paper visit sheets with live service reports, photos, water chemistry tracking,
-            and maintenance reminders.
+            Αντικαταστησε τα χειρογραφα δελτια με live αναφορες επισκεψης, φωτογραφιες, παρακολουθηση
+            χημικων και υπενθυμισεις.
           </p>
           <div className="flex gap-3 pt-2">
             <Link
               href={session ? "/app" : "/signin"}
               className="rounded-lg bg-zinc-900 px-5 py-3 text-sm font-medium text-white hover:bg-zinc-700"
             >
-              {session ? "Go to dashboard" : "Sign in to platform"}
+              {session ? "Μεταβαση στον πινακα" : "Συνδεση στην πλατφορμα"}
             </Link>
           </div>
         </div>
         <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-          <h3 className="text-lg font-semibold text-zinc-900">What you get</h3>
+          <h3 className="text-lg font-semibold text-zinc-900">Τι προσφερει</h3>
           <ul className="mt-4 space-y-2 text-zinc-700">
-            <li>- Pool registry by company and client.</li>
-            <li>- Technician visit forms with measured values.</li>
-            <li>- Photo evidence and report history.</li>
-            <li>- Role-based access for admins and technicians.</li>
-            <li>- Multi-company architecture from one codebase.</li>
+            <li>- Καταλογος πισινων ανα εταιρεια και πελατη.</li>
+            <li>- Φορμες επισκεψης τεχνικου με μετρησεις.</li>
+            <li>- Φωτογραφιες και ιστορικο αναφορων.</li>
+            <li>- Δικαιωματα προσβασης ανα ρολο χρηστη.</li>
+            <li>- Υποστηριξη πολλων εταιρειων σε ενα συστημα.</li>
           </ul>
         </div>
       </section>

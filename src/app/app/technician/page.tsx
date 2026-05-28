@@ -27,8 +27,8 @@ export default async function TechnicianDashboardPage({ searchParams }: Technici
 
     return (
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-8">
-        <h1 className="text-3xl font-semibold text-zinc-900">Technician Structure</h1>
-        <p className="text-zinc-600">See each boss and the technicians working under their company.</p>
+      <h1 className="text-3xl font-semibold text-zinc-900">Δομη Τεχνικων</h1>
+      <p className="text-zinc-600">Δες για καθε εταιρεια τον boss και τους τεχνικους του.</p>
 
         <section className="space-y-4">
           {companies.map((company) => {
@@ -42,7 +42,7 @@ export default async function TechnicianDashboardPage({ searchParams }: Technici
                     href={`/app/technician?companyId=${company.id}`}
                     className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-900 hover:bg-zinc-100"
                   >
-                    Open visits
+                    Ανοιγμα επισκεψεων
                   </Link>
                 </div>
                 <div className="mt-4 grid gap-4 lg:grid-cols-2">
@@ -50,7 +50,7 @@ export default async function TechnicianDashboardPage({ searchParams }: Technici
                     <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">Bosses</h3>
                     <div className="mt-2 space-y-2">
                       {bosses.length === 0 ? (
-                        <p className="text-sm text-zinc-600">No boss assigned.</p>
+                        <p className="text-sm text-zinc-600">Δεν υπαρχει boss ακομα.</p>
                       ) : (
                         bosses.map((boss) => (
                           <div key={boss.id} className="rounded-lg border border-zinc-200 px-3 py-2">
@@ -65,7 +65,7 @@ export default async function TechnicianDashboardPage({ searchParams }: Technici
                     <h3 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">Technicians</h3>
                     <div className="mt-2 space-y-2">
                       {technicians.length === 0 ? (
-                        <p className="text-sm text-zinc-600">No technicians yet.</p>
+                        <p className="text-sm text-zinc-600">Δεν υπαρχουν τεχνικοι ακομα.</p>
                       ) : (
                         technicians.map((tech) => (
                           <div key={tech.id} className="rounded-lg border border-zinc-200 px-3 py-2">
@@ -100,42 +100,42 @@ export default async function TechnicianDashboardPage({ searchParams }: Technici
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-8">
-      <h1 className="text-3xl font-semibold text-zinc-900">Technician Panel</h1>
+      <h1 className="text-3xl font-semibold text-zinc-900">Πινακας Τεχνικου</h1>
       {session.role === "SUPER_ADMIN" ? (
         <div className="flex gap-3">
           <Link
             href="/app/technician"
             className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-900 hover:bg-zinc-100"
           >
-            Back to all bosses
+            Πισω σε ολους τους bosses
           </Link>
         </div>
       ) : null}
       <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-semibold text-zinc-900">Quick actions</h2>
+        <h2 className="text-xl font-semibold text-zinc-900">Γρηγορες ενεργειες</h2>
         <div className="mt-4 flex flex-wrap gap-3">
           <Link
             href="/app/technician/visits"
             className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700"
           >
-            Record visit
+            Καταχωρηση επισκεψης
           </Link>
           {session.role === "ADMIN" || session.role === "SUPER_ADMIN" ? (
             <Link
               href="/app/admin/pools"
               className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-100"
             >
-              View pools
+              Προβολη πισινων
             </Link>
           ) : null}
         </div>
       </section>
 
       <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-semibold text-zinc-900">Recent visits</h2>
+        <h2 className="text-xl font-semibold text-zinc-900">Τελευταιες επισκεψεις</h2>
         <div className="mt-4 space-y-3">
           {recentVisits.length === 0 ? (
-            <p className="text-zinc-600">No visits yet.</p>
+            <p className="text-zinc-600">Δεν υπαρχουν επισκεψεις ακομα.</p>
           ) : (
             recentVisits.map((visit) => (
               <article key={visit.id} className="rounded-xl border border-zinc-200 p-4">
@@ -145,7 +145,7 @@ export default async function TechnicianDashboardPage({ searchParams }: Technici
                 <p className="text-sm text-zinc-600">
                   {new Date(visit.performedAt).toLocaleString("el-GR")}
                 </p>
-                <p className="mt-1 text-sm text-zinc-700">{visit.notes ?? "No notes"}</p>
+                <p className="mt-1 text-sm text-zinc-700">{visit.notes ?? "Χωρις παρατηρησεις"}</p>
               </article>
             ))
           )}
