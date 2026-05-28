@@ -1,4 +1,6 @@
 import { revalidatePath } from "next/cache";
+import { randomBytes } from "node:crypto";
+import { redirect } from "next/navigation";
 
 import { hashPassword, requireAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -32,8 +34,37 @@ async function addTechnician(formData: FormData) {
   revalidatePath("/app/admin/team");
 }
 
+async function resetTechnicianCredentials(formData: FormData) {
+  "use server";
+
+  const session = await requireAdminSession();
+  const userId = String(formData.get("userId") ?? "").trim();
+  const companyIdFromForm = String(formData.get("companyId") ?? "").trim();
+  const companyId =
+    session.role === "SUPER_ADMIN" && companyIdFromForm ? companyIdFromForm : session.companyId;
+
+  if (!userId) return;
+
+  const target = await prisma.user.findFirst({
+    where: { id: userId, companyId, role: "TECHNICIAN" },
+    select: { id: true },
+  });
+  if (!target) return;
+
+  const tempPassword = randomBytes(9).toString("base64url");
+  await prisma.user.update({
+    where: { id: target.id },
+    data: { passwordHash: hashPassword(tempPassword), isActive: true },
+  });
+
+  revalidatePath("/app/admin/team");
+  redirect(
+    `/app/admin/team?companyId=${encodeURIComponent(companyId)}&revealUserId=${encodeURIComponent(userId)}&revealPassword=${encodeURIComponent(tempPassword)}`,
+  );
+}
+
 type AdminTeamPageProps = {
-  searchParams: Promise<{ companyId?: string }>;
+  searchParams: Promise<{ companyId?: string; revealUserId?: string; revealPassword?: string }>;
 };
 
 export default async function AdminTeamPage({ searchParams }: AdminTeamPageProps) {
@@ -93,6 +124,25 @@ export default async function AdminTeamPage({ searchParams }: AdminTeamPageProps
                 {member.fullName} ({member.role})
               </p>
               <p className="text-xs text-zinc-600">{member.email}</p>
+              {member.role === "TECHNICIAN" ? (
+                <>
+                  {params.revealUserId === member.id && params.revealPassword ? (
+                    <p className="mt-1 text-xs font-medium text-green-700">
+                      Temporary password: {params.revealPassword}
+                    </p>
+                  ) : null}
+                  <form action={resetTechnicianCredentials} className="mt-2">
+                    <input type="hidden" name="userId" value={member.id} />
+                    <input type="hidden" name="companyId" value={companyId} />
+                    <button
+                      type="submit"
+                      className="rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-800 hover:bg-zinc-100"
+                    >
+                      Reset credentials
+                    </button>
+                  </form>
+                </>
+              ) : null}
             </div>
           ))}
         </div>

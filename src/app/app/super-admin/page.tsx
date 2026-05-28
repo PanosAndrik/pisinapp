@@ -1,4 +1,6 @@
 import { revalidatePath } from "next/cache";
+import { randomBytes } from "node:crypto";
+import { redirect } from "next/navigation";
 
 import { hashPassword, requireSuperAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -61,8 +63,48 @@ async function addTechnician(formData: FormData) {
   revalidatePath("/app/super-admin");
 }
 
-export default async function SuperAdminPage() {
+async function deleteCompany(formData: FormData) {
+  "use server";
+
+  const session = await requireSuperAdminSession();
+  const companyId = String(formData.get("companyId") ?? "").trim();
+  if (!companyId) return;
+
+  // Prevent deleting the company that currently contains the logged-in super admin.
+  if (companyId === session.companyId) return;
+
+  await prisma.company.delete({
+    where: { id: companyId },
+  });
+
+  revalidatePath("/app/super-admin");
+}
+
+async function resetAnyUserPassword(formData: FormData) {
+  "use server";
+
   await requireSuperAdminSession();
+
+  const userId = String(formData.get("userId") ?? "").trim();
+  if (!userId) return;
+
+  const tempPassword = randomBytes(9).toString("base64url");
+  await prisma.user.update({
+    where: { id: userId },
+    data: { passwordHash: hashPassword(tempPassword), isActive: true },
+  });
+
+  revalidatePath("/app/super-admin");
+  redirect(`/app/super-admin?revealUserId=${encodeURIComponent(userId)}&revealPassword=${encodeURIComponent(tempPassword)}`);
+}
+
+type SuperAdminPageProps = {
+  searchParams: Promise<{ revealUserId?: string; revealPassword?: string }>;
+};
+
+export default async function SuperAdminPage({ searchParams }: SuperAdminPageProps) {
+  const session = await requireSuperAdminSession();
+  const params = await searchParams;
 
   const companies = await prisma.company.findMany({
     orderBy: { createdAt: "desc" },
@@ -133,6 +175,16 @@ export default async function SuperAdminPage() {
                     Pools: {company._count.pools} | Visits: {company._count.visits}
                   </p>
                 </div>
+                <form action={deleteCompany}>
+                  <input type="hidden" name="companyId" value={company.id} />
+                  <button
+                    type="submit"
+                    disabled={company.id === session.companyId}
+                    className="rounded border border-red-300 px-3 py-1.5 text-sm text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Delete company
+                  </button>
+                </form>
               </div>
 
               <div className="mt-4 grid gap-4 lg:grid-cols-2">
@@ -150,6 +202,20 @@ export default async function SuperAdminPage() {
                             {member.fullName} ({member.role})
                           </p>
                           <p className="text-xs text-zinc-600">{member.email}</p>
+                          {params.revealUserId === member.id && params.revealPassword ? (
+                            <p className="mt-1 text-xs font-medium text-green-700">
+                              Temporary password: {params.revealPassword}
+                            </p>
+                          ) : null}
+                          <form action={resetAnyUserPassword} className="mt-2">
+                            <input type="hidden" name="userId" value={member.id} />
+                            <button
+                              type="submit"
+                              className="rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-800 hover:bg-zinc-100"
+                            >
+                              Reset credentials
+                            </button>
+                          </form>
                         </div>
                       ))
                     )}
