@@ -1,47 +1,9 @@
-import { revalidatePath } from "next/cache";
+import Link from "next/link";
 
 import { requireAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
-
-function parseOptionalDecimal(value: FormDataEntryValue | null) {
-  const text = String(value ?? "").trim();
-  if (!text) return null;
-  const parsed = Number(text);
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-async function createVisit(formData: FormData) {
-  "use server";
-
-  const session = await requireAdminSession();
-  const targetCompanyIdRaw = String(formData.get("companyId") ?? "").trim();
-  const companyId =
-    session.role === "SUPER_ADMIN" && targetCompanyIdRaw ? targetCompanyIdRaw : session.companyId;
-  const poolId = String(formData.get("poolId") ?? "").trim();
-  const performedAtRaw = String(formData.get("performedAt") ?? "").trim();
-  const notes = String(formData.get("notes") ?? "").trim();
-
-  if (!poolId || !performedAtRaw) return;
-
-  await prisma.visit.create({
-    data: {
-      companyId,
-      poolId,
-      performedAt: new Date(performedAtRaw),
-      ph: parseOptionalDecimal(formData.get("ph")),
-      chlorinePpm: parseOptionalDecimal(formData.get("chlorinePpm")),
-      alkalinityPpm: parseOptionalDecimal(formData.get("alkalinityPpm")),
-      temperatureC: parseOptionalDecimal(formData.get("temperatureC")),
-      pressureBar: parseOptionalDecimal(formData.get("pressureBar")),
-      notes: notes || null,
-    },
-  });
-
-  revalidatePath("/app/admin/visits");
-  revalidatePath("/app/admin");
-}
 
 type AdminVisitsPageProps = {
   searchParams: Promise<{ companyId?: string }>;
@@ -52,19 +14,15 @@ export default async function AdminVisitsPage({ searchParams }: AdminVisitsPageP
   const params = await searchParams;
   const companyId =
     session.role === "SUPER_ADMIN" && params.companyId ? params.companyId : session.companyId;
-  const [pools, visits] = await Promise.all([
-    prisma.pool.findMany({
-      where: { companyId, isActive: true },
-      orderBy: { code: "asc" },
-      select: { id: true, code: true, clientName: true },
-    }),
-    prisma.visit.findMany({
+  const visits = await prisma.visit.findMany({
       where: { companyId },
       orderBy: { performedAt: "desc" },
       take: 30,
-      include: { pool: { select: { code: true, clientName: true } } },
-    }),
-  ]);
+      include: {
+        pool: { select: { code: true, clientName: true } },
+        technician: { select: { fullName: true, email: true } },
+      },
+    });
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-8">
@@ -72,75 +30,19 @@ export default async function AdminVisitsPage({ searchParams }: AdminVisitsPageP
 
       <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
         <h2 className="text-xl font-semibold text-zinc-900">Καταχωρηση Νεας Επισκεψης</h2>
-        {pools.length === 0 ? (
-          <p className="mt-3 text-zinc-600">Πρεπει να υπαρχει τουλαχιστον μια πισινα πρωτα.</p>
-        ) : (
-          <form action={createVisit} className="mt-4 grid gap-3 sm:grid-cols-2">
-            {session.role === "SUPER_ADMIN" ? (
-              <input type="hidden" name="companyId" value={companyId} />
-            ) : null}
-            <select name="poolId" className="rounded-lg border border-zinc-300 px-3 py-2" required>
-              <option value="">Επιλογη πισινας</option>
-              {pools.map((pool) => (
-                <option key={pool.id} value={pool.id}>
-                  {pool.code} - {pool.clientName}
-                </option>
-              ))}
-            </select>
-            <input
-              name="performedAt"
-              type="datetime-local"
-              className="rounded-lg border border-zinc-300 px-3 py-2"
-              required
-            />
-            <input
-              name="ph"
-              type="number"
-              step="0.01"
-              placeholder="pH"
-              className="rounded-lg border border-zinc-300 px-3 py-2"
-            />
-            <input
-              name="chlorinePpm"
-              type="number"
-              step="0.01"
-              placeholder="Χλωριο ppm"
-              className="rounded-lg border border-zinc-300 px-3 py-2"
-            />
-            <input
-              name="alkalinityPpm"
-              type="number"
-              step="0.01"
-              placeholder="Αλκαλικοτητα ppm"
-              className="rounded-lg border border-zinc-300 px-3 py-2"
-            />
-            <input
-              name="temperatureC"
-              type="number"
-              step="0.1"
-              placeholder="Θερμοκρασια C"
-              className="rounded-lg border border-zinc-300 px-3 py-2"
-            />
-            <input
-              name="pressureBar"
-              type="number"
-              step="0.01"
-              placeholder="Πιεση φιλτρου bar"
-              className="rounded-lg border border-zinc-300 px-3 py-2"
-            />
-            <input
-              name="notes"
-              placeholder="Παρατηρησεις"
-              className="rounded-lg border border-zinc-300 px-3 py-2 sm:col-span-2"
-            />
-            <button
-              type="submit"
-              className="rounded-lg bg-zinc-900 px-4 py-2 font-medium text-white hover:bg-zinc-700 sm:col-span-2"
-            >
-              Αποθηκευση επισκεψης
-            </button>
-          </form>
-        )}
+        <p className="mt-2 text-sm text-zinc-600">
+          Η λεπτομερης φορμα επισκεψης (ιδια με του τεχνικου) βρισκεται εδω:
+        </p>
+        <Link
+          href={
+            session.role === "SUPER_ADMIN"
+              ? `/app/technician/visits?companyId=${companyId}`
+              : "/app/technician/visits"
+          }
+          className="mt-3 inline-flex rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700"
+        >
+          Ανοιγμα πληρους φορμας επισκεψης
+        </Link>
       </section>
 
       <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
@@ -150,23 +52,22 @@ export default async function AdminVisitsPage({ searchParams }: AdminVisitsPageP
             <p className="text-zinc-600">Δεν υπαρχουν επισκεψεις ακομα.</p>
           ) : (
             visits.map((visit) => (
-              <article key={visit.id} className="rounded-xl border border-zinc-200 p-4">
+              <Link
+                key={visit.id}
+                href={`/app/admin/visits/${visit.id}`}
+                className="block rounded-xl border border-zinc-200 p-4 transition hover:border-zinc-300 hover:bg-zinc-50"
+              >
                 <p className="font-semibold text-zinc-900">
                   {visit.pool.code} - {visit.pool.clientName}
                 </p>
                 <p className="text-sm text-zinc-600">
                   {new Date(visit.performedAt).toLocaleString("el-GR")}
                 </p>
-                <p className="mt-2 text-sm text-zinc-700">
-                  pH: {visit.ph?.toString() ?? "-"} | Cl: {visit.chlorinePpm?.toString() ?? "-"} ppm |
-                  Alkalinity: {visit.alkalinityPpm?.toString() ?? "-"} ppm
+                <p className="mt-1 text-sm text-zinc-700">
+                  Τεχνικος: {visit.technician?.fullName ?? "Δεν δηλωθηκε"}
                 </p>
-                <p className="text-sm text-zinc-700">
-                  Θερμοκρασια: {visit.temperatureC?.toString() ?? "-"} C | Πιεση:{" "}
-                  {visit.pressureBar?.toString() ?? "-"} bar
-                </p>
-                <p className="mt-1 text-sm text-zinc-600">{visit.notes ?? "Χωρις παρατηρησεις"}</p>
-              </article>
+                <p className="mt-1 text-sm text-zinc-500">Πατα για αναλυτικη προβολη</p>
+              </Link>
             ))
           )}
         </div>
