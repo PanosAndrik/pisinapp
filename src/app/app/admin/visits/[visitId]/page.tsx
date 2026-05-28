@@ -10,13 +10,59 @@ type VisitDetailPageProps = {
   params: Promise<{ visitId: string }>;
 };
 
-function renderBoolean(value: unknown) {
-  return value === true ? "Ναι" : "Οχι";
+const CLEANING_LABELS: Record<string, string> = {
+  cleanFilter1: "Καθαρισμος Φιλτρου 1",
+  cleanFilter2: "Καθαρισμος Φιλτρου 2",
+  cleanFilter34: "Καθαρισμος Φιλτρου 3/4",
+  pump1: "Αντλια 1",
+  pump2: "Αντλια 2",
+  pump34: "Αντλια 3/4",
+  chlorinator: "Χλωριωτης",
+  vacuum: "Σκουπα",
+  hydromassage: "Υδρομασαζ",
+  waterfallPump: "Αντλια Καταρρακτη",
+  autoDisinfection: "Αυτοματο συστημα απολυμανσης",
+  overflowTank: "Δεξαμενη υπερχειλησης",
+  heatExchanger: "Εναλλακτη",
+  autoCleaning: "Αυτοματος καθαρισμος",
+  saltElectrolysis: "Ηλεκτρολ. Αλατος",
+  leaks: "Διαρροες",
+  thermostat: "Θερμοστατης",
+  dehumidifier: "Αφυγραντης",
+  wellPump: "Αντλια Φρεατιου",
+  ventilation: "Εξαερισμος",
+  pipeSupports: "Στηριγματα Σωληνων",
+  sandCheck: "Ελεγχος αμμου",
+  multiValve: "Πολυβανα Φιλτρων",
+};
+
+const ELECTRICAL_LABELS: Record<string, string> = {
+  underwaterLights: "Υποβρυχιοι προβολεις",
+  transformer: "Μετασχηματιστης",
+  electricalPanel: "Ηλεκτρικος πινακας",
+};
+
+const CHEMICAL_LABELS: Record<string, string> = {
+  phMinusPlus: "pH minus / plus",
+  chlorineBromine: "Χλωριο / Βρωμιο",
+  oxygen: "Οξυγονο",
+  algaecide: "Αλγοκτονο",
+  flocculant: "Κροκιδωτικο",
+  shockChlorination: "Χλωριωση Σοκ",
+};
+
+function truthyChecks(value: unknown, labels: Record<string, string>) {
+  if (!value || typeof value !== "object") return [] as Array<[string, string]>;
+  return Object.entries(value as Record<string, unknown>)
+    .filter(([, v]) => v === true)
+    .map(([key]) => [labels[key] ?? key, "Ναι"] as [string, string]);
 }
 
-function renderRecord(value: unknown) {
-  if (!value || typeof value !== "object") return [];
-  return Object.entries(value as Record<string, unknown>);
+function nonEmptyText(value: unknown, labels: Record<string, string>) {
+  if (!value || typeof value !== "object") return [] as Array<[string, string]>;
+  return Object.entries(value as Record<string, unknown>)
+    .map(([key, val]) => [labels[key] ?? key, String(val ?? "").trim()] as [string, string])
+    .filter(([, val]) => val.length > 0);
 }
 
 export default async function VisitDetailPage({ params }: VisitDetailPageProps) {
@@ -40,9 +86,25 @@ export default async function VisitDetailPage({ params }: VisitDetailPageProps) 
 
   if (!visit) notFound();
 
-  const cleaning = renderRecord(visit.cleaningChecks);
-  const electrical = renderRecord(visit.electricalChecks);
-  const chemicals = renderRecord(visit.chemicalAdditions);
+  const checks = [
+    ["pH", visit.ph?.toString() ?? ""],
+    ["Ολικο χλωριο", visit.totalChlorinePpm?.toString() ?? ""],
+    ["Ελευθερο χλωριο", visit.chlorinePpm?.toString() ?? ""],
+    ["Σκληροτητα", visit.hardnessPpm?.toString() ?? ""],
+    ["Αλκαλικοτητα", visit.alkalinityPpm?.toString() ?? ""],
+    ["Συγκεντρωση οξυγονου", visit.oxygenConcentrationPpm?.toString() ?? ""],
+    ["Ισοκυανουρικο οξυ", visit.cyanuricAcidPpm?.toString() ?? ""],
+    ["Σιδηρος", visit.ironPpm?.toString() ?? ""],
+    ["Τεστ μικροβιων", visit.microbeTest ?? ""],
+    ["Πιεση φιλτρου 1/2", visit.pressureBar?.toString() ?? ""],
+    ["Πιεση φιλτρου 3/4", visit.pressureBarSecondary?.toString() ?? ""],
+  ] as Array<[string, string]>;
+  const filteredChecks = checks.filter(([, val]) => val.trim().length > 0);
+  if (visit.waterClarityOk === true) filteredChecks.push(["Διαυγεια νερου", "Ναι"]);
+
+  const cleaning = truthyChecks(visit.cleaningChecks, CLEANING_LABELS);
+  const electrical = truthyChecks(visit.electricalChecks, ELECTRICAL_LABELS);
+  const chemicals = nonEmptyText(visit.chemicalAdditions, CHEMICAL_LABELS);
 
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
@@ -66,67 +128,60 @@ export default async function VisitDetailPage({ params }: VisitDetailPageProps) 
         </p>
       </section>
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
-        <h2 className="text-xl font-semibold text-zinc-900">Ελεγχοι</h2>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          <Field label="pH" value={visit.ph?.toString()} />
-          <Field label="Ολικο χλωριο" value={visit.totalChlorinePpm?.toString()} />
-          <Field label="Ελευθερο χλωριο" value={visit.chlorinePpm?.toString()} />
-          <Field label="Σκληροτητα" value={visit.hardnessPpm?.toString()} />
-          <Field label="Αλκαλικοτητα" value={visit.alkalinityPpm?.toString()} />
-          <Field label="Συγκεντρωση οξυγονου" value={visit.oxygenConcentrationPpm?.toString()} />
-          <Field label="Ισοκυανουρικο οξυ" value={visit.cyanuricAcidPpm?.toString()} />
-          <Field label="Σιδηρος" value={visit.ironPpm?.toString()} />
-          <Field label="Τεστ μικροβιων" value={visit.microbeTest ?? undefined} />
-          <Field label="Διαυγεια νερου" value={visit.waterClarityOk != null ? renderBoolean(visit.waterClarityOk) : undefined} />
-          <Field label="Πιεση φιλτρου 1/2" value={visit.pressureBar?.toString()} />
-          <Field label="Πιεση φιλτρου 3/4" value={visit.pressureBarSecondary?.toString()} />
-        </div>
-      </section>
+      {filteredChecks.length > 0 ? (
+        <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
+          <h2 className="text-xl font-semibold text-zinc-900">Ελεγχοι</h2>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {filteredChecks.map(([label, value]) => (
+              <Field key={label} label={label} value={value} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
-        <h2 className="text-xl font-semibold text-zinc-900">Καθαρισμοι / Ελεγχοι</h2>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          {cleaning.length === 0 ? (
-            <p className="text-zinc-600">Δεν υπαρχουν δεδομενα.</p>
-          ) : (
-            cleaning.map(([key, val]) => <Field key={key} label={key} value={renderBoolean(val)} />)
-          )}
-        </div>
-      </section>
+      {cleaning.length > 0 ? (
+        <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
+          <h2 className="text-xl font-semibold text-zinc-900">Καθαρισμοι / Ελεγχοι</h2>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {cleaning.map(([label, value]) => (
+              <Field key={label} label={label} value={value} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
-        <h2 className="text-xl font-semibold text-zinc-900">Ηλεκτρικες εγκαταστασεις</h2>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          {electrical.length === 0 ? (
-            <p className="text-zinc-600">Δεν υπαρχουν δεδομενα.</p>
-          ) : (
-            electrical.map(([key, val]) => <Field key={key} label={key} value={renderBoolean(val)} />)
-          )}
-        </div>
-      </section>
+      {electrical.length > 0 ? (
+        <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
+          <h2 className="text-xl font-semibold text-zinc-900">Ηλεκτρικες εγκαταστασεις</h2>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {electrical.map(([label, value]) => (
+              <Field key={label} label={label} value={value} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
-        <h2 className="text-xl font-semibold text-zinc-900">Προσθηκες χημικων</h2>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          {chemicals.length === 0 ? (
-            <p className="text-zinc-600">Δεν υπαρχουν δεδομενα.</p>
-          ) : (
-            chemicals.map(([key, val]) => <Field key={key} label={key} value={String(val ?? "")} />)
-          )}
-        </div>
-      </section>
+      {chemicals.length > 0 ? (
+        <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
+          <h2 className="text-xl font-semibold text-zinc-900">Προσθηκες χημικων</h2>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {chemicals.map(([label, value]) => (
+              <Field key={label} label={label} value={value} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
-        <h2 className="text-xl font-semibold text-zinc-900">Παρατηρησεις</h2>
-        <p className="mt-2 text-zinc-700">{visit.notes || "Χωρις παρατηρησεις"}</p>
-      </section>
+      {visit.notes && visit.notes.trim().length > 0 ? (
+        <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
+          <h2 className="text-xl font-semibold text-zinc-900">Παρατηρησεις</h2>
+          <p className="mt-2 text-zinc-700">{visit.notes}</p>
+        </section>
+      ) : null}
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
-        <h2 className="text-xl font-semibold text-zinc-900">Φωτογραφιες</h2>
-        {visit.photos.length === 0 ? (
-          <p className="mt-2 text-zinc-600">Δεν εχουν ανεβει φωτογραφιες.</p>
-        ) : (
+      {visit.photos.length > 0 ? (
+        <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
+          <h2 className="text-xl font-semibold text-zinc-900">Φωτογραφιες</h2>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             {visit.photos.map((photo) => (
               <a
@@ -140,8 +195,8 @@ export default async function VisitDetailPage({ params }: VisitDetailPageProps) 
               </a>
             ))}
           </div>
-        )}
-      </section>
+        </section>
+      ) : null}
     </main>
   );
 }
