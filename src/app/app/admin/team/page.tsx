@@ -63,6 +63,39 @@ async function resetTechnicianCredentials(formData: FormData) {
   );
 }
 
+async function updateTechnicianCredentials(formData: FormData) {
+  "use server";
+
+  const session = await requireAdminSession();
+  const userId = String(formData.get("userId") ?? "").trim();
+  const companyIdFromForm = String(formData.get("companyId") ?? "").trim();
+  const companyId =
+    session.role === "SUPER_ADMIN" && companyIdFromForm ? companyIdFromForm : session.companyId;
+  const fullName = String(formData.get("fullName") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const password = String(formData.get("password") ?? "").trim();
+
+  if (!userId || !fullName || !email) return;
+
+  const target = await prisma.user.findFirst({
+    where: { id: userId, companyId, role: "TECHNICIAN" },
+    select: { id: true },
+  });
+  if (!target) return;
+
+  await prisma.user.update({
+    where: { id: target.id },
+    data: {
+      fullName,
+      email,
+      ...(password ? { passwordHash: hashPassword(password) } : {}),
+      isActive: true,
+    },
+  });
+
+  revalidatePath("/app/admin/team");
+}
+
 type AdminTeamPageProps = {
   searchParams: Promise<{ companyId?: string; revealUserId?: string; revealPassword?: string }>;
 };
@@ -126,6 +159,33 @@ export default async function AdminTeamPage({ searchParams }: AdminTeamPageProps
               <p className="text-xs text-zinc-600">{member.email}</p>
               {member.role === "TECHNICIAN" ? (
                 <>
+                  <form action={updateTechnicianCredentials} className="mt-2 grid gap-2">
+                    <input type="hidden" name="userId" value={member.id} />
+                    <input type="hidden" name="companyId" value={companyId} />
+                    <input
+                      name="fullName"
+                      defaultValue={member.fullName}
+                      className="rounded border border-zinc-300 px-2 py-1 text-xs"
+                    />
+                    <input
+                      name="email"
+                      type="email"
+                      defaultValue={member.email}
+                      className="rounded border border-zinc-300 px-2 py-1 text-xs"
+                    />
+                    <input
+                      name="password"
+                      type="text"
+                      placeholder="Set new password (optional)"
+                      className="rounded border border-zinc-300 px-2 py-1 text-xs"
+                    />
+                    <button
+                      type="submit"
+                      className="rounded border border-zinc-300 px-2 py-1 text-xs text-zinc-800 hover:bg-zinc-100"
+                    >
+                      Save credentials
+                    </button>
+                  </form>
                   {params.revealUserId === member.id && params.revealPassword ? (
                     <p className="mt-1 text-xs font-medium text-green-700">
                       Temporary password: {params.revealPassword}
