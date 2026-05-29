@@ -130,7 +130,20 @@ export default async function AdminDashboardPage({ searchParams }: AdminDashboar
           className="rounded-2xl border border-zinc-200 bg-white p-5 text-zinc-900 shadow-sm transition hover:border-zinc-300"
         >
           <h2 className="text-xl font-semibold">Αναφορες Επισκεψεων</h2>
-          <p className="mt-1 text-zinc-600">Ελεγχος αναφορων service και μετρησεων.</p>
+          <p className="mt-1 text-zinc-600">Λιστα επισκεψεων και λεπτομερειες.</p>
+        </Link>
+        <Link
+          href={
+            session.role === "SUPER_ADMIN"
+              ? `/app/admin/reports?companyId=${selectedCompanyId}`
+              : "/app/admin/reports"
+          }
+          className="rounded-2xl border border-zinc-200 bg-white p-5 text-zinc-900 shadow-sm transition hover:border-zinc-300 sm:col-span-2"
+        >
+          <h2 className="text-xl font-semibold">Reports & Στατιστικα</h2>
+          <p className="mt-1 text-zinc-600">
+            Alerts, trends, αναλυτικα ανα πισινα και τεχνικο, εξαγωγη CSV.
+          </p>
         </Link>
         <Link
           href={

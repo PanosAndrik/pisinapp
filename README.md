@@ -1,4 +1,14 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pisinapp
+
+Πλατφόρμα διαχείρισης συντήρησης πισίνας (multi-tenant SaaS).
+
+## Συνέχιση εργασίας
+
+1. Άνοιξε στο Cursor: `C:\Projects\pisinapp\pisinapp`
+2. Διάβασε **[CONTINUE.md](CONTINUE.md)** και **[docs/PROJECT.md](docs/PROJECT.md)**
+3. Σε νέο Agent chat: *«Διάβασε docs/PROJECT.md και συνέχισε»*
+
+**Επόμενο βήμα (Μάιος 2026):** Reports module.
 
 ## Getting Started
 

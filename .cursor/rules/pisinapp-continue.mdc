@@ -1,0 +1,30 @@
+---
+description: Pisinapp project context — read before any work
+alwaysApply: true
+---
+
+# Pisinapp — συνέχεια εργασίας
+
+Πριν γράψεις κώδικα ή προτείνεις αλλαγές:
+
+1. Διάβασε `docs/PROJECT.md` (κατάσταση, επόμενο βήμα, paths).
+2. Αν χρειάζεται ιστορικό αποφάσεων, δες `docs/CONVERSATION-HISTORY.md`.
+
+## Σταθερά
+
+- Repo root: `C:\Projects\pisinapp\pisinapp` (μόνο αυτός ο φάκελος).
+- Stack: Next.js App Router, Prisma, PostgreSQL, Railway deploy.
+- Multi-tenant: κάθε query business data με `companyId` / session company.
+- UI: ελληνικά για τεχνικούς και κύριες οθόνες.
+- Ο χρήστης κάνει **μόνος του** git commit και push — μην κάνεις commit εκτός αν το ζητήσει ρητά.
+
+## Επόμενο προτεραιότητας (Μάιος 2026)
+
+**Reports module** — φίλτρα, στατιστικά, export. Η φόρμα τεχνικού και το admin visit detail είναι έτοιμα.
+
+## Τεχνικές σημειώσεις
+
+- Φόρμα τεχνικού: `src/app/app/technician/visits/page.tsx`
+- Αναλυτική επίσκεψη (μόνο filled fields): `src/app/app/admin/visits/[visitId]/page.tsx`
+- Φωτό: προσωρινά base64 στο `VisitPhoto.imageUrl` — μελλοντικά object storage.
+- `MaintenanceRule` στο schema — χωρίς UI ακόμα.

@@ -36,9 +36,14 @@ export default async function AppLayout({
               </Link>
             ) : null}
             {session.role === "ADMIN" || session.role === "SUPER_ADMIN" ? (
-              <Link href="/app/admin" className="text-sm text-zinc-700 hover:text-zinc-900">
-                Διαχειριση
-              </Link>
+              <>
+                <Link href="/app/admin" className="text-sm text-zinc-700 hover:text-zinc-900">
+                  Διαχειριση
+                </Link>
+                <Link href="/app/admin/reports" className="text-sm text-zinc-700 hover:text-zinc-900">
+                  Reports
+                </Link>
+              </>
             ) : null}
             <Link href="/app/technician" className="text-sm text-zinc-700 hover:text-zinc-900">
               Τεχνικος
