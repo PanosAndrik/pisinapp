@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { revalidatePath } from "next/cache";
 
 import { PageHeader } from "@/components/ui/page-header";
@@ -94,7 +95,11 @@ export default async function AdminPoolsPage({ searchParams }: AdminPoolsPagePro
             <p className="text-zinc-600">Δεν υπαρχουν πισινες ακομα. Προσθεσε την πρωτη.</p>
           ) : (
             pools.map((pool) => (
-              <article key={pool.id} className="rounded-xl border border-zinc-200 p-4">
+              <Link
+                key={pool.id}
+                href={adminHref(`/app/admin/pools/${pool.id}`, { companyId, isSuperAdmin })}
+                className="block rounded-xl border border-zinc-200 p-4 transition hover:border-zinc-300 hover:bg-zinc-50"
+              >
                 <p className="font-semibold text-zinc-900">
                   {pool.code} - {pool.clientName}
                 </p>
@@ -102,7 +107,8 @@ export default async function AdminPoolsPage({ searchParams }: AdminPoolsPagePro
                 <p className="text-sm text-zinc-600">
                   Ογκος: {pool.volumeLiters?.toLocaleString("el-GR") ?? "-"} L
                 </p>
-              </article>
+                <p className="mt-2 text-xs font-medium text-zinc-500">Στατιστικα & επισκεψεις →</p>
+              </Link>
             ))
           )}
         </div>

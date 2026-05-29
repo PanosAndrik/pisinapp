@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { SeverityBadge } from "@/components/reports/severity-badge";
 import type { PoolAlertRow } from "@/lib/reports/data";
+import { adminHref } from "@/lib/admin-nav";
 import { withCompanyQuery } from "@/lib/reports/date-range";
 
 type TabPoolsProps = {
@@ -57,6 +58,15 @@ export function TabPools({ companyId, role, poolAlerts, fromStr, toStr }: TabPoo
                 <td className="py-3">
                   <div className="flex flex-wrap gap-2">
                     <Link
+                      href={adminHref(`/app/admin/pools/${row.poolId}`, {
+                        companyId,
+                        isSuperAdmin: role === "SUPER_ADMIN",
+                      })}
+                      className="text-xs font-medium text-zinc-800 underline"
+                    >
+                      Προφιλ
+                    </Link>
+                    <Link
                       href={withCompanyQuery(
                         `/app/admin/reports/pools/${row.poolId}`,
                         companyId,
@@ -65,7 +75,7 @@ export function TabPools({ companyId, role, poolAlerts, fromStr, toStr }: TabPoo
                       )}
                       className="text-xs font-medium text-zinc-800 underline"
                     >
-                      Trends
+                      Report
                     </Link>
                     <Link
                       href={withCompanyQuery("/app/admin/reports/print", companyId, role, {
