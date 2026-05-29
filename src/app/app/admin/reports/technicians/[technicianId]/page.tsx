@@ -2,10 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { SeverityBadge } from "@/components/reports/severity-badge";
+import { PageHeader } from "@/components/ui/page-header";
+import { PageShell } from "@/components/ui/page-shell";
+import { cardClass } from "@/components/ui/field-styles";
+import { adminHref } from "@/lib/admin-nav";
 import { requireAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { loadVisitsInRange } from "@/lib/reports/data";
-import { parseReportDateRange, withCompanyQuery } from "@/lib/reports/date-range";
+import { parseReportDateRange } from "@/lib/reports/date-range";
 import { getVisitAlerts, getVisitCompletenessPercent } from "@/lib/reports/visit-metrics";
 
 export const dynamic = "force-dynamic";
@@ -50,26 +54,20 @@ export default async function TechnicianReportPage({
           visits.reduce((sum, v) => sum + getVisitCompletenessPercent(v), 0) / visits.length,
         );
 
+  const isSuperAdmin = session.role === "SUPER_ADMIN";
+
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 sm:text-3xl">
-            Report τεχνικου: {technician.fullName}
-          </h1>
-          <p className="text-sm text-zinc-600">{technician.email}</p>
-        </div>
-        <Link
-          href={withCompanyQuery("/app/admin/reports", companyId, session.role, {
-            tab: "technicians",
-            from: range.fromStr,
-            to: range.toStr,
-          })}
-          className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-900 hover:bg-zinc-100"
-        >
-          Πισω στα Reports
-        </Link>
-      </div>
+    <PageShell>
+      <PageHeader
+        title={`Report τεχνικου: ${technician.fullName}`}
+        subtitle={technician.email}
+        backHref={adminHref("/app/admin/reports", {
+          companyId,
+          isSuperAdmin,
+          query: { tab: "technicians", from: range.fromStr, to: range.toStr },
+        })}
+        backLabel="Πισω στα Reports"
+      />
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label="Επισκεψεις" value={String(visits.length)} />
@@ -78,7 +76,7 @@ export default async function TechnicianReportPage({
         <Stat label="Μεσος ορος πληροτητας" value={`${avgCompleteness}%`} />
       </section>
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+      <section className={cardClass}>
         <h2 className="text-lg font-semibold text-zinc-900">
           Επισκεψεις ({range.fromStr} — {range.toStr})
         </h2>
@@ -115,7 +113,7 @@ export default async function TechnicianReportPage({
           )}
         </div>
       </section>
-    </main>
+    </PageShell>
   );
 }
 

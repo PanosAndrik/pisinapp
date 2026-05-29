@@ -30,7 +30,7 @@ export function ReportsTabs({
   technicianId,
 }: ReportsTabsProps) {
   return (
-    <nav className="flex flex-wrap gap-2">
+    <nav className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {TABS.map((tab) => {
         const href = withCompanyQuery("/app/admin/reports", companyId, role, {
           tab: tab.id,
@@ -44,7 +44,7 @@ export function ReportsTabs({
           <Link
             key={tab.id}
             href={href}
-            className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
+            className={`shrink-0 rounded-lg px-3 py-2 text-sm font-medium ${
               active
                 ? "bg-zinc-900 text-white"
                 : "border border-zinc-300 text-zinc-800 hover:bg-zinc-50"

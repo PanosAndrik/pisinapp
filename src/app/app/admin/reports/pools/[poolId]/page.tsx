@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 
 import { SparklineChart } from "@/components/reports/sparkline-chart";
 import { SeverityBadge } from "@/components/reports/severity-badge";
+import { PageHeader } from "@/components/ui/page-header";
+import { PageShell } from "@/components/ui/page-shell";
+import { btnPrimaryClass, cardClass } from "@/components/ui/field-styles";
+import { adminHref } from "@/lib/admin-nav";
 import { requireAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { CHEMICAL_LABELS } from "@/lib/visit-labels";
@@ -57,29 +61,20 @@ export default async function PoolReportPage({ params, searchParams }: PoolRepor
   const pressureTrend = buildTrend(visits, "pressureBar");
   const chemicals = aggregateChemicalUsage(visits);
 
-  const reportsHref = withCompanyQuery("/app/admin/reports", companyId, session.role, {
-    tab: "pools",
-    from: range.fromStr,
-    to: range.toStr,
-  });
+  const isSuperAdmin = session.role === "SUPER_ADMIN";
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 sm:text-3xl">
-            Report πισινας: {pool.code}
-          </h1>
-          <p className="mt-1 text-zinc-600">{pool.clientName}</p>
-          {pool.address ? <p className="text-sm text-zinc-500">{pool.address}</p> : null}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link
-            href={reportsHref}
-            className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-900 hover:bg-zinc-100"
-          >
-            Πισω στα Reports
-          </Link>
+    <PageShell>
+      <PageHeader
+        title={`Report πισινας: ${pool.code}`}
+        subtitle={[pool.clientName, pool.address].filter(Boolean).join(" · ")}
+        backHref={adminHref("/app/admin/reports", {
+          companyId,
+          isSuperAdmin,
+          query: { tab: "pools", from: range.fromStr, to: range.toStr },
+        })}
+        backLabel="Πισω στα Reports"
+        actions={
           <Link
             href={withCompanyQuery("/app/admin/reports/print", companyId, session.role, {
               poolId: pool.id,
@@ -87,14 +82,16 @@ export default async function PoolReportPage({ params, searchParams }: PoolRepor
               to: range.toStr,
             })}
             target="_blank"
-            className="rounded-lg bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-700"
+            rel="noopener noreferrer"
+            prefetch={false}
+            className={`${btnPrimaryClass} inline-flex w-auto px-4 py-2`}
           >
             Εκτυπωση / PDF
           </Link>
-        </div>
-      </div>
+        }
+      />
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+      <section className={cardClass}>
         <p className="text-sm text-zinc-600">
           Περιοδος: {range.fromStr} — {range.toStr} · {visits.length} επισκεψεις
         </p>
@@ -128,7 +125,7 @@ export default async function PoolReportPage({ params, searchParams }: PoolRepor
       </section>
 
       {chemicals.size > 0 ? (
-        <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <section className={cardClass}>
           <h2 className="text-lg font-semibold text-zinc-900">Προσθηκες χημικων (συνολα περιοδου)</h2>
           <ul className="mt-3 grid gap-2 sm:grid-cols-2">
             {Array.from(chemicals.entries()).map(([key, total]) => (
@@ -144,7 +141,7 @@ export default async function PoolReportPage({ params, searchParams }: PoolRepor
         </section>
       ) : null}
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+      <section className={cardClass}>
         <h2 className="text-lg font-semibold text-zinc-900">Ιστορικο επισκεψεων</h2>
         <div className="mt-4 space-y-2">
           {visits.length === 0 ? (
@@ -178,6 +175,6 @@ export default async function PoolReportPage({ params, searchParams }: PoolRepor
           )}
         </div>
       </section>
-    </main>
+    </PageShell>
   );
 }

@@ -48,8 +48,9 @@ Web εφαρμογή για εταιρείες συντήρησης πισίνα
 - [x] Αναλυτικό report: **μόνο συμπληρωμένα πεδία** (όχι κενά / όχι «Όχι»)
 - [x] Καταχώρηση νέας επίσκεψης από boss → link στην πλήρη φόρμα τεχνικού
 - [x] **Reports module** — overview, alerts, pools, technicians, trends, CSV, print/PDF
+- [x] **Mobile responsive UI** — `PageShell` / `PageHeader` με «← Πίσω» ανά οθόνη (όχι global back), hamburger menu, touch-friendly πεδία (16px inputs), φόρμα τεχνικού optimized για κινητό
 
-Τελευταίο γνωστό commit: (μετά το Reports push)
+Τελευταίο γνωστό commit: (μετά mobile + reports)
 
 ## Reports module (ολοκληρωμένο)
 
@@ -64,7 +65,7 @@ Web εφαρμογή για εταιρείες συντήρησης πισίνα
 
 ## Επόμενο βήμα
 
-### 1. Άλλα (μετά τα reports)
+### 1. Άλλα (μετά reports + mobile)
 
 - **MaintenanceRule** — υπάρχει στο schema, **χωρίς UI** (ειδοποιήσεις «πρόσθεσε χλώριο σε X μέρες»)
 - **Φωτογραφίες** — μετάβαση από base64 σε object storage (S3 / R2 / Backblaze)
@@ -80,6 +81,8 @@ Web εφαρμογή για εταιρείες συντήρησης πισίνα
 | `src/app/app/technician/visits/page.tsx` | Φόρμα τεχνικού |
 | `src/app/app/admin/visits/[visitId]/page.tsx` | Αναλυτική επίσκεψη |
 | `src/app/app/admin/visits/page.tsx` | Λίστα + link στη φόρμα |
+| `src/components/ui/page-header.tsx` | Τίτλος + back link ανά σελίδα |
+| `src/components/app/app-header.tsx` | Sticky header + mobile menu |
 
 ## Local setup
 

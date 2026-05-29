@@ -5,8 +5,8 @@ import { getSession } from "@/lib/auth";
 export default async function Home() {
   const session = await getSession();
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-6 py-10">
-      <header className="mb-16 flex items-center justify-between">
+    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 py-8 sm:px-6 sm:py-10">
+      <header className="mb-10 flex flex-col gap-4 sm:mb-16 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-zinc-900">Pisinapp</h1>
           <p className="text-sm text-zinc-600">Πλατφορμα Διαχειρισης Συντηρησης Πισινας</p>
@@ -21,7 +21,7 @@ export default async function Home() {
 
       <section className="grid gap-8 md:grid-cols-2">
         <div className="space-y-4">
-          <h2 className="text-4xl font-bold leading-tight text-zinc-900">
+          <h2 className="text-2xl font-bold leading-tight text-zinc-900 sm:text-4xl">
             Ψηφιακη συντηρηση πισινας για συγχρονες ομαδες service.
           </h2>
           <p className="text-lg text-zinc-600">

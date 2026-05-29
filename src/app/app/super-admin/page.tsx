@@ -2,6 +2,9 @@ import { revalidatePath } from "next/cache";
 import { randomBytes } from "node:crypto";
 import { redirect } from "next/navigation";
 
+import { PageHeader } from "@/components/ui/page-header";
+import { PageShell } from "@/components/ui/page-shell";
+import { cardClass, fieldClass } from "@/components/ui/field-styles";
 import { hashPassword, requireSuperAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -144,10 +147,10 @@ export default async function SuperAdminPage({ searchParams }: SuperAdminPagePro
   });
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-8">
-      <h1 className="text-3xl font-semibold text-zinc-900">Super Admin</h1>
+    <PageShell>
+      <PageHeader title="Υπερ Διαχειριση" backHref="/app" backLabel="Πισω στην αρχικη" />
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <section className={cardClass}>
         <h2 className="text-xl font-semibold text-zinc-900">Δημιουργια εταιρειας + λογαριασμου boss</h2>
         <form action={createCompanyWithBoss} className="mt-4 grid gap-3 sm:grid-cols-2">
           <input
@@ -160,14 +163,14 @@ export default async function SuperAdminPage({ searchParams }: SuperAdminPagePro
             name="bossName"
             placeholder="Ονοματεπωνυμο boss"
             required
-            className="rounded-lg border border-zinc-300 px-3 py-2"
+            className={fieldClass}
           />
           <input
             name="bossEmail"
             type="email"
             placeholder="Email boss"
             required
-            className="rounded-lg border border-zinc-300 px-3 py-2"
+            className={fieldClass}
           />
           <input
             name="bossPassword"
@@ -312,6 +315,6 @@ export default async function SuperAdminPage({ searchParams }: SuperAdminPagePro
           ))
         )}
       </section>
-    </main>
+    </PageShell>
   );
 }

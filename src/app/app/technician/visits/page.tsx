@@ -1,5 +1,8 @@
 import { revalidatePath } from "next/cache";
 
+import { PageHeader } from "@/components/ui/page-header";
+import { PageShell } from "@/components/ui/page-shell";
+import { btnPrimaryClass, cardClass, fieldClass } from "@/components/ui/field-styles";
 import { requireSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -159,10 +162,20 @@ export default async function TechnicianVisitsPage({ searchParams }: TechnicianV
 
   const now = new Date();
 
+  const backHref =
+    session.role === "SUPER_ADMIN" && params.companyId
+      ? `/app/technician?companyId=${params.companyId}`
+      : "/app/technician";
+
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-4 px-3 py-4 sm:gap-6 sm:px-6 sm:py-8">
-      <h1 className="text-2xl font-semibold text-zinc-900 sm:text-3xl">Καταχωρηση Επισκεψης</h1>
-      <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
+    <PageShell className="max-w-5xl">
+      <PageHeader
+        title="Καταχωρηση Επισκεψης"
+        backHref={backHref}
+        backLabel="Πισω"
+      />
+
+      <section className={cardClass}>
         {pools.length === 0 ? (
           <p className="text-zinc-600">Δεν υπαρχουν διαθεσιμες πισινες ακομα.</p>
         ) : (
@@ -171,7 +184,7 @@ export default async function TechnicianVisitsPage({ searchParams }: TechnicianV
 
             <div className="sm:col-span-2">
               <label className="mb-1 block text-sm font-medium text-zinc-700">Πισινα</label>
-              <select name="poolId" className="w-full rounded-lg border border-zinc-300 px-3 py-2" required>
+              <select name="poolId" className={fieldClass} required>
                 <option value="">Επιλογη πισινας</option>
                 {pools.map((pool) => (
                   <option key={pool.id} value={pool.id}>
@@ -187,7 +200,7 @@ export default async function TechnicianVisitsPage({ searchParams }: TechnicianV
                 name="visitDate"
                 type="date"
                 defaultValue={toDateInputValue(now)}
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2"
+                className={fieldClass}
                 required
               />
             </div>
@@ -197,7 +210,7 @@ export default async function TechnicianVisitsPage({ searchParams }: TechnicianV
                 name="visitTime"
                 type="time"
                 defaultValue={toTimeInputValue(now)}
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2"
+                className={fieldClass}
               />
             </div>
 
@@ -211,9 +224,9 @@ export default async function TechnicianVisitsPage({ searchParams }: TechnicianV
               <LabeledInput name="cyanuricAcidPpm" label="Ισοκυανουρικο οξυ" />
               <LabeledInput name="ironPpm" label="Σιδηρος" />
               <LabeledInput name="microbeTest" label="Τεστ μικροβιων" />
-              <label className="flex items-center justify-between rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-800">
+              <label className="flex min-h-[44px] items-center justify-between rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-800">
                 Διαυγεια νερου
-                <input name="waterClarityOk" type="checkbox" className="h-4 w-4" />
+                <input name="waterClarityOk" type="checkbox" className="h-5 w-5 shrink-0" />
               </label>
               <LabeledInput
                 name="pressureBar"
@@ -231,10 +244,10 @@ export default async function TechnicianVisitsPage({ searchParams }: TechnicianV
               {CLEANING_ITEMS.map(([key, label]) => (
                 <label
                   key={key}
-                  className="flex items-center justify-between rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-800"
+                  className="flex min-h-[44px] items-center justify-between gap-2 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-800"
                 >
-                  {label}
-                  <input name={key} type="checkbox" className="h-4 w-4" />
+                  <span className="min-w-0 flex-1">{label}</span>
+                  <input name={key} type="checkbox" className="h-5 w-5 shrink-0" />
                 </label>
               ))}
             </Section>
@@ -243,10 +256,10 @@ export default async function TechnicianVisitsPage({ searchParams }: TechnicianV
               {ELECTRICAL_ITEMS.map(([key, label]) => (
                 <label
                   key={key}
-                  className="flex items-center justify-between rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-800"
+                  className="flex min-h-[44px] items-center justify-between gap-2 rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-800"
                 >
-                  {label}
-                  <input name={key} type="checkbox" className="h-4 w-4" />
+                  <span className="min-w-0 flex-1">{label}</span>
+                  <input name={key} type="checkbox" className="h-5 w-5 shrink-0" />
                 </label>
               ))}
             </Section>
@@ -262,7 +275,7 @@ export default async function TechnicianVisitsPage({ searchParams }: TechnicianV
               <textarea
                 name="notes"
                 rows={3}
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2"
+                className={fieldClass}
                 placeholder="Γραψε παρατηρησεις..."
               />
             </div>
@@ -276,7 +289,7 @@ export default async function TechnicianVisitsPage({ searchParams }: TechnicianV
                   type="file"
                   accept="image/*"
                   multiple
-                  className="mt-1 block w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
+                  className={`mt-1 block ${fieldClass}`}
                 />
               </label>
               <p className="mt-2 text-xs text-zinc-500">
@@ -284,17 +297,14 @@ export default async function TechnicianVisitsPage({ searchParams }: TechnicianV
               </p>
             </div>
 
-            <button
-              type="submit"
-              className="w-full rounded-lg bg-zinc-900 px-4 py-3 text-base font-medium text-white hover:bg-zinc-700 sm:col-span-2"
-            >
+            <button type="submit" className={`${btnPrimaryClass} sm:col-span-2`}>
               Αποθηκευση επισκεψης
             </button>
           </form>
         )}
       </section>
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
+      <section className={cardClass}>
         <h2 className="text-xl font-semibold text-zinc-900">Τελευταιες επισκεψεις</h2>
         <div className="mt-4 space-y-3">
           {visits.length === 0 ? (
@@ -314,13 +324,13 @@ export default async function TechnicianVisitsPage({ searchParams }: TechnicianV
           )}
         </div>
       </section>
-    </main>
+    </PageShell>
   );
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="sm:col-span-2 rounded-xl border border-zinc-200 p-4">
+    <div className={`sm:col-span-2 ${cardClass} !p-4`}>
       <h2 className="text-lg font-semibold text-zinc-900">{title}</h2>
       <div className="mt-3 grid gap-2 sm:grid-cols-2">{children}</div>
     </div>
@@ -342,7 +352,7 @@ function LabeledInput({
         {label}
         {helper ? <HelpBubble text={helper} /> : null}
       </label>
-      <input name={name} className="w-full rounded-lg border border-zinc-300 px-3 py-2" />
+      <input name={name} className={fieldClass} />
     </div>
   );
 }

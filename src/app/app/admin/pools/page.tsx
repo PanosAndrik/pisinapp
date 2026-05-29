@@ -1,5 +1,9 @@
 import { revalidatePath } from "next/cache";
 
+import { PageHeader } from "@/components/ui/page-header";
+import { PageShell } from "@/components/ui/page-shell";
+import { btnPrimaryClass, cardClass, fieldClass } from "@/components/ui/field-styles";
+import { adminHref } from "@/lib/admin-nav";
 import { requireAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -49,52 +53,41 @@ export default async function AdminPoolsPage({ searchParams }: AdminPoolsPagePro
     orderBy: { createdAt: "desc" },
   });
 
+  const isSuperAdmin = session.role === "SUPER_ADMIN";
+
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-8">
-      <h1 className="text-3xl font-semibold text-zinc-900">Διαχειριση Πισινων</h1>
-      <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-semibold text-zinc-900">Προσθηκη Πισινας</h2>
+    <PageShell>
+      <PageHeader
+        title="Διαχειριση Πισινων"
+        backHref={adminHref("/app/admin", { companyId, isSuperAdmin })}
+        backLabel="Πισω στο Admin"
+      />
+      <section className={cardClass}>
+        <h2 className="text-lg font-semibold text-zinc-900 sm:text-xl">Προσθηκη Πισινας</h2>
         <form action={createPool} className="mt-4 grid gap-3 sm:grid-cols-2">
-          {session.role === "SUPER_ADMIN" ? <input type="hidden" name="companyId" value={companyId} /> : null}
-          <input
-            name="code"
-            placeholder="Κωδικος πισινας (π.χ. ALMA-01)"
-            className="rounded-lg border border-zinc-300 px-3 py-2"
-            required
-          />
-          <input
-            name="clientName"
-            placeholder="Ονομα πελατη"
-            className="rounded-lg border border-zinc-300 px-3 py-2"
-            required
-          />
+          {isSuperAdmin ? <input type="hidden" name="companyId" value={companyId} /> : null}
+          <input name="code" placeholder="Κωδικος πισινας (π.χ. ALMA-01)" className={fieldClass} required />
+          <input name="clientName" placeholder="Ονομα πελατη" className={fieldClass} required />
           <input
             name="address"
             placeholder="Διευθυνση"
-            className="rounded-lg border border-zinc-300 px-3 py-2 sm:col-span-2"
+            className={`${fieldClass} sm:col-span-2`}
           />
           <input
             name="volumeLiters"
             type="number"
             min={0}
             placeholder="Ογκος (λιτρα)"
-            className="rounded-lg border border-zinc-300 px-3 py-2"
+            className={fieldClass}
           />
-          <input
-            name="notes"
-            placeholder="Παρατηρησεις"
-            className="rounded-lg border border-zinc-300 px-3 py-2"
-          />
-          <button
-            type="submit"
-            className="rounded-lg bg-zinc-900 px-4 py-2 font-medium text-white hover:bg-zinc-700 sm:col-span-2"
-          >
+          <input name="notes" placeholder="Παρατηρησεις" className={fieldClass} />
+          <button type="submit" className={`${btnPrimaryClass} sm:col-span-2`}>
             Αποθηκευση πισινας
           </button>
         </form>
       </section>
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <section className={cardClass}>
         <h2 className="text-xl font-semibold text-zinc-900">Ενεργες πισινες ({pools.length})</h2>
         <div className="mt-4 space-y-3">
           {pools.length === 0 ? (
@@ -114,6 +107,6 @@ export default async function AdminPoolsPage({ searchParams }: AdminPoolsPagePro
           )}
         </div>
       </section>
-    </main>
+    </PageShell>
   );
 }

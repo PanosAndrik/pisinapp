@@ -1,6 +1,7 @@
-import Link from "next/link";
-
 import { ReportsFilters } from "@/components/reports/reports-filters";
+import { PageHeader } from "@/components/ui/page-header";
+import { PageShell } from "@/components/ui/page-shell";
+import { adminHref } from "@/lib/admin-nav";
 import { ReportsTabs } from "@/components/reports/reports-tabs";
 import { TabAlerts } from "@/components/reports/tab-alerts";
 import { TabOverview } from "@/components/reports/tab-overview";
@@ -40,16 +41,14 @@ export default async function AdminReportsPage({ searchParams }: ReportsPageProp
 
   if (session.role === "SUPER_ADMIN" && !params.companyId) {
     return (
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-8">
-        <h1 className="text-3xl font-semibold text-zinc-900">Reports</h1>
-        <p className="text-zinc-600">
-          Επελεξε πρωτα εταιρεια απο τον{" "}
-          <Link href="/app/admin" className="font-medium underline">
-            πινακα Admin
-          </Link>{" "}
-          και μετα ανοιξε Reports με το κουμπι εκει ή προσθεσε ?companyId= στο URL.
-        </p>
-      </main>
+      <PageShell>
+        <PageHeader
+          title="Reports"
+          subtitle="Επελεξε πρωτα εταιρεια απο τον πινακα Admin."
+          backHref="/app/super-admin"
+          backLabel="Πισω στην Υπερ Διαχειριση"
+        />
+      </PageShell>
     );
   }
 
@@ -67,26 +66,16 @@ export default async function AdminReportsPage({ searchParams }: ReportsPageProp
   const technicianStats = buildTechnicianStats(visits);
   const alertCounts = countAlertsBySeverity(poolAlerts);
 
+  const isSuperAdmin = session.role === "SUPER_ADMIN";
+
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-zinc-900 sm:text-3xl">Reports & Στατιστικα</h1>
-          <p className="mt-1 text-sm text-zinc-600">
-            Επισκοπηση, alerts, trends και αναλυτικα ανα πισινα / τεχνικο.
-          </p>
-        </div>
-        <Link
-          href={
-            session.role === "SUPER_ADMIN"
-              ? `/app/admin?companyId=${companyId}`
-              : "/app/admin"
-          }
-          className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-900 hover:bg-zinc-100"
-        >
-          Πισω στο Admin
-        </Link>
-      </div>
+    <PageShell>
+      <PageHeader
+        title="Reports & Στατιστικα"
+        subtitle="Επισκοπηση, alerts, trends και αναλυτικα ανα πισινα / τεχνικο."
+        backHref={adminHref("/app/admin", { companyId, isSuperAdmin })}
+        backLabel="Πισω στο Admin"
+      />
 
       <ReportsFilters
         companyId={companyId}
@@ -149,6 +138,6 @@ export default async function AdminReportsPage({ searchParams }: ReportsPageProp
       ) : null}
 
       {tab === "visits" ? <TabVisits visits={visits} /> : null}
-    </main>
+    </PageShell>
   );
 }

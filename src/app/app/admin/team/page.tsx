@@ -2,6 +2,10 @@ import { revalidatePath } from "next/cache";
 import { randomBytes } from "node:crypto";
 import { redirect } from "next/navigation";
 
+import { PageHeader } from "@/components/ui/page-header";
+import { PageShell } from "@/components/ui/page-shell";
+import { cardClass, fieldClass } from "@/components/ui/field-styles";
+import { adminHref } from "@/lib/admin-nav";
 import { hashPassword, requireAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -111,11 +115,17 @@ export default async function AdminTeamPage({ searchParams }: AdminTeamPageProps
     select: { id: true, fullName: true, email: true, role: true },
   });
 
-  return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-8">
-      <h1 className="text-3xl font-semibold text-zinc-900">Διαχειριση Ομαδας</h1>
+  const isSuperAdmin = session.role === "SUPER_ADMIN";
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+  return (
+    <PageShell>
+      <PageHeader
+        title="Διαχειριση Ομαδας"
+        backHref={adminHref("/app/admin", { companyId, isSuperAdmin })}
+        backLabel="Πισω στο Admin"
+      />
+
+      <section className={cardClass}>
         <h2 className="text-xl font-semibold text-zinc-900">Προσθηκη Τεχνικου</h2>
         <form action={addTechnician} className="mt-4 grid gap-3 sm:grid-cols-2">
           {session.role === "SUPER_ADMIN" ? <input type="hidden" name="companyId" value={companyId} /> : null}
@@ -123,14 +133,14 @@ export default async function AdminTeamPage({ searchParams }: AdminTeamPageProps
             name="fullName"
             placeholder="Ονομα τεχνικου"
             required
-            className="rounded-lg border border-zinc-300 px-3 py-2"
+            className={fieldClass}
           />
           <input
             name="email"
             type="email"
             placeholder="Email τεχνικου"
             required
-            className="rounded-lg border border-zinc-300 px-3 py-2"
+            className={fieldClass}
           />
           <input
             name="password"
@@ -207,6 +217,6 @@ export default async function AdminTeamPage({ searchParams }: AdminTeamPageProps
           ))}
         </div>
       </section>
-    </main>
+    </PageShell>
   );
 }

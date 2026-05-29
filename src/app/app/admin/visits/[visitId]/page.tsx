@@ -1,6 +1,9 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { PageHeader } from "@/components/ui/page-header";
+import { PageShell } from "@/components/ui/page-shell";
+import { cardClass } from "@/components/ui/field-styles";
+import { adminHref } from "@/lib/admin-nav";
 import { requireAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
@@ -70,19 +73,18 @@ export default async function VisitDetailPage({ params }: VisitDetailPageProps) 
   const electrical = truthyChecks(visit.electricalChecks, ELECTRICAL_LABELS);
   const chemicals = nonEmptyText(visit.chemicalAdditions, CHEMICAL_LABELS);
 
-  return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold text-zinc-900 sm:text-3xl">Αναλυτικη Επισκεψη</h1>
-        <Link
-          href="/app/admin/visits"
-          className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-900 hover:bg-zinc-100"
-        >
-          Πισω στις αναφορες
-        </Link>
-      </div>
+  const isSuperAdmin = session.role === "SUPER_ADMIN";
+  const companyId = session.role === "SUPER_ADMIN" ? visit.companyId : session.companyId;
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
+  return (
+    <PageShell>
+      <PageHeader
+        title="Αναλυτικη Επισκεψη"
+        backHref={adminHref("/app/admin/visits", { companyId, isSuperAdmin })}
+        backLabel="Πισω στις επισκεψεις"
+      />
+
+      <section className={cardClass}>
         <p className="font-semibold text-zinc-900">
           {visit.pool.code} - {visit.pool.clientName}
         </p>
@@ -93,7 +95,7 @@ export default async function VisitDetailPage({ params }: VisitDetailPageProps) 
       </section>
 
       {filteredChecks.length > 0 ? (
-        <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
+        <section className={cardClass}>
           <h2 className="text-xl font-semibold text-zinc-900">Ελεγχοι</h2>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {filteredChecks.map(([label, value]) => (
@@ -104,7 +106,7 @@ export default async function VisitDetailPage({ params }: VisitDetailPageProps) 
       ) : null}
 
       {cleaning.length > 0 ? (
-        <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
+        <section className={cardClass}>
           <h2 className="text-xl font-semibold text-zinc-900">Καθαρισμοι / Ελεγχοι</h2>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {cleaning.map(([label, value]) => (
@@ -115,7 +117,7 @@ export default async function VisitDetailPage({ params }: VisitDetailPageProps) 
       ) : null}
 
       {electrical.length > 0 ? (
-        <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
+        <section className={cardClass}>
           <h2 className="text-xl font-semibold text-zinc-900">Ηλεκτρικες εγκαταστασεις</h2>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {electrical.map(([label, value]) => (
@@ -126,7 +128,7 @@ export default async function VisitDetailPage({ params }: VisitDetailPageProps) 
       ) : null}
 
       {chemicals.length > 0 ? (
-        <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
+        <section className={cardClass}>
           <h2 className="text-xl font-semibold text-zinc-900">Προσθηκες χημικων</h2>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {chemicals.map(([label, value]) => (
@@ -137,14 +139,14 @@ export default async function VisitDetailPage({ params }: VisitDetailPageProps) 
       ) : null}
 
       {visit.notes && visit.notes.trim().length > 0 ? (
-        <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
+        <section className={cardClass}>
           <h2 className="text-xl font-semibold text-zinc-900">Παρατηρησεις</h2>
           <p className="mt-2 text-zinc-700">{visit.notes}</p>
         </section>
       ) : null}
 
       {visit.photos.length > 0 ? (
-        <section className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm sm:p-6">
+        <section className={cardClass}>
           <h2 className="text-xl font-semibold text-zinc-900">Φωτογραφιες</h2>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
             {visit.photos.map((photo) => (
@@ -161,7 +163,7 @@ export default async function VisitDetailPage({ params }: VisitDetailPageProps) 
           </div>
         </section>
       ) : null}
-    </main>
+    </PageShell>
   );
 }
 

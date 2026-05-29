@@ -75,6 +75,8 @@ export function TabPools({ companyId, role, poolAlerts, fromStr, toStr }: TabPoo
                       })}
                       className="text-xs font-medium text-zinc-800 underline"
                       target="_blank"
+                      rel="noopener noreferrer"
+                      prefetch={false}
                     >
                       Εκτυπωση
                     </Link>

@@ -1,5 +1,9 @@
 import Link from "next/link";
 
+import { PageHeader } from "@/components/ui/page-header";
+import { PageShell } from "@/components/ui/page-shell";
+import { btnPrimaryClass, cardClass } from "@/components/ui/field-styles";
+import { adminHref } from "@/lib/admin-nav";
 import { requireAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -24,28 +28,30 @@ export default async function AdminVisitsPage({ searchParams }: AdminVisitsPageP
       },
     });
 
-  return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-8">
-      <h1 className="text-3xl font-semibold text-zinc-900">Αναφορες Επισκεψεων</h1>
+  const isSuperAdmin = session.role === "SUPER_ADMIN";
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <h2 className="text-xl font-semibold text-zinc-900">Καταχωρηση Νεας Επισκεψης</h2>
+  return (
+    <PageShell>
+      <PageHeader
+        title="Αναφορες Επισκεψεων"
+        backHref={adminHref("/app/admin", { companyId, isSuperAdmin })}
+        backLabel="Πισω στο Admin"
+      />
+
+      <section className={cardClass}>
+        <h2 className="text-lg font-semibold text-zinc-900 sm:text-xl">Καταχωρηση Νεας Επισκεψης</h2>
         <p className="mt-2 text-sm text-zinc-600">
           Η λεπτομερης φορμα επισκεψης (ιδια με του τεχνικου) βρισκεται εδω:
         </p>
         <Link
-          href={
-            session.role === "SUPER_ADMIN"
-              ? `/app/technician/visits?companyId=${companyId}`
-              : "/app/technician/visits"
-          }
-          className="mt-3 inline-flex rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700"
+          href={adminHref("/app/technician/visits", { companyId, isSuperAdmin })}
+          className={`${btnPrimaryClass} mt-3 inline-flex w-auto items-center justify-center px-5`}
         >
           Ανοιγμα πληρους φορμας επισκεψης
         </Link>
       </section>
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <section className={cardClass}>
         <h2 className="text-xl font-semibold text-zinc-900">Τελευταιες επισκεψεις</h2>
         <div className="mt-4 space-y-3">
           {visits.length === 0 ? (
@@ -55,7 +61,7 @@ export default async function AdminVisitsPage({ searchParams }: AdminVisitsPageP
               <Link
                 key={visit.id}
                 href={`/app/admin/visits/${visit.id}`}
-                className="block rounded-xl border border-zinc-200 p-4 transition hover:border-zinc-300 hover:bg-zinc-50"
+                className="block min-h-[4.5rem] rounded-xl border border-zinc-200 p-4 active:border-zinc-300 active:bg-zinc-50"
               >
                 <p className="font-semibold text-zinc-900">
                   {visit.pool.code} - {visit.pool.clientName}
@@ -72,6 +78,6 @@ export default async function AdminVisitsPage({ searchParams }: AdminVisitsPageP
           )}
         </div>
       </section>
-    </main>
+    </PageShell>
   );
 }

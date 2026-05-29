@@ -1,5 +1,8 @@
 import Link from "next/link";
 
+import { PageHeader } from "@/components/ui/page-header";
+import { PageShell } from "@/components/ui/page-shell";
+import { btnPrimaryClass, cardClass } from "@/components/ui/field-styles";
 import { requireSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -26,16 +29,20 @@ export default async function TechnicianDashboardPage({ searchParams }: Technici
     });
 
     return (
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-8">
-      <h1 className="text-3xl font-semibold text-zinc-900">Δομη Τεχνικων</h1>
-      <p className="text-zinc-600">Δες για καθε εταιρεια τον boss και τους τεχνικους του.</p>
+      <PageShell>
+        <PageHeader
+          title="Δομη Τεχνικων"
+          subtitle="Δες για καθε εταιρεια τον boss και τους τεχνικους του."
+          backHref="/app"
+          backLabel="Πισω"
+        />
 
         <section className="space-y-4">
           {companies.map((company) => {
             const bosses = company.users.filter((u) => u.role === "ADMIN");
             const technicians = company.users.filter((u) => u.role === "TECHNICIAN");
             return (
-              <article key={company.id} className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+              <article key={company.id} className={cardClass}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <h2 className="text-xl font-semibold text-zinc-900">{company.name}</h2>
                   <Link
@@ -81,7 +88,7 @@ export default async function TechnicianDashboardPage({ searchParams }: Technici
             );
           })}
         </section>
-      </main>
+      </PageShell>
     );
   }
 
@@ -98,32 +105,29 @@ export default async function TechnicianDashboardPage({ searchParams }: Technici
     include: { pool: { select: { code: true, clientName: true } } },
   });
 
+  const visitsHref =
+    session.role === "SUPER_ADMIN" && params.companyId
+      ? `/app/technician/visits?companyId=${params.companyId}`
+      : "/app/technician/visits";
+
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-8">
-      <h1 className="text-3xl font-semibold text-zinc-900">Πινακας Τεχνικου</h1>
-      {session.role === "SUPER_ADMIN" ? (
-        <div className="flex gap-3">
-          <Link
-            href="/app/technician"
-            className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-900 hover:bg-zinc-100"
-          >
-            Πισω σε ολους τους bosses
-          </Link>
-        </div>
-      ) : null}
-      <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+    <PageShell>
+      <PageHeader
+        title="Πινακας Τεχνικου"
+        backHref={session.role === "SUPER_ADMIN" ? "/app/technician" : undefined}
+        backLabel="Πισω"
+      />
+
+      <section className={cardClass}>
         <h2 className="text-xl font-semibold text-zinc-900">Γρηγορες ενεργειες</h2>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <Link
-            href="/app/technician/visits"
-            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700"
-          >
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <Link href={visitsHref} className={`${btnPrimaryClass} inline-flex w-full sm:w-auto`}>
             Καταχωρηση επισκεψης
           </Link>
           {session.role === "ADMIN" || session.role === "SUPER_ADMIN" ? (
             <Link
               href="/app/admin/pools"
-              className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-100"
+              className="touch-target inline-flex w-full items-center justify-center rounded-lg border border-zinc-300 px-4 py-3 text-base font-medium text-zinc-900 hover:bg-zinc-100 sm:w-auto sm:py-2 sm:text-sm"
             >
               Προβολη πισινων
             </Link>
@@ -131,7 +135,7 @@ export default async function TechnicianDashboardPage({ searchParams }: Technici
         </div>
       </section>
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <section className={cardClass}>
         <h2 className="text-xl font-semibold text-zinc-900">Τελευταιες επισκεψεις</h2>
         <div className="mt-4 space-y-3">
           {recentVisits.length === 0 ? (
@@ -151,6 +155,6 @@ export default async function TechnicianDashboardPage({ searchParams }: Technici
           )}
         </div>
       </section>
-    </main>
+    </PageShell>
   );
 }

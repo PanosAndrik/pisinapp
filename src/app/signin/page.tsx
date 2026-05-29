@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { btnPrimaryClass, cardClass, fieldClass } from "@/components/ui/field-styles";
 import { ensureBootstrapAdmin } from "@/lib/app-context";
 import { getSession, signIn } from "@/lib/auth";
 
@@ -28,8 +29,8 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6 py-10">
-      <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-8 sm:px-6 sm:py-10">
+      <div className={cardClass}>
         <h1 className="text-2xl font-semibold text-zinc-900">Συνδεση</h1>
         <p className="mt-1 text-sm text-zinc-600">
           Συνδεσου με τα στοιχεια που σου εδωσε η διαχειριση.
@@ -45,19 +46,16 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
             type="email"
             required
             placeholder="Email"
-            className="w-full rounded-lg border border-zinc-300 px-3 py-2"
+            className={fieldClass}
           />
           <input
             name="password"
             type="password"
             required
             placeholder="Κωδικος"
-            className="w-full rounded-lg border border-zinc-300 px-3 py-2"
+            className={fieldClass}
           />
-          <button
-            type="submit"
-            className="w-full rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700"
-          >
+          <button type="submit" className={btnPrimaryClass}>
             Συνδεση
           </button>
         </form>

@@ -1,5 +1,9 @@
 import Link from "next/link";
 
+import { PageHeader } from "@/components/ui/page-header";
+import { PageShell } from "@/components/ui/page-shell";
+import { cardClass } from "@/components/ui/field-styles";
+import { adminHref } from "@/lib/admin-nav";
 import { requireAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -29,15 +33,17 @@ export default async function AdminDashboardPage({ searchParams }: AdminDashboar
     });
 
     return (
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-8">
-        <h1 className="text-3xl font-semibold text-zinc-900">Επισκοπηση Εταιρειων (Admin)</h1>
-        <p className="text-zinc-600">
-          Επελεξε εταιρεια για να ανοιξεις τα admin εργαλεία που χρησιμοποιει ο boss.
-        </p>
+      <PageShell>
+        <PageHeader
+          title="Επισκοπηση Εταιρειων"
+          subtitle="Επελεξε εταιρεια για τα admin εργαλεια του boss."
+          backHref="/app/super-admin"
+          backLabel="Πισω στην Υπερ Διαχειριση"
+        />
 
         <section className="space-y-4">
           {companies.map((company) => (
-            <article key={company.id} className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+            <article key={company.id} className={cardClass}>
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-semibold text-zinc-900">{company.name}</h2>
@@ -70,7 +76,7 @@ export default async function AdminDashboardPage({ searchParams }: AdminDashboar
             </article>
           ))}
         </section>
-      </main>
+      </PageShell>
     );
   }
 
@@ -85,25 +91,21 @@ export default async function AdminDashboardPage({ searchParams }: AdminDashboar
     }),
   ]);
 
+  const isSuperAdmin = session.role === "SUPER_ADMIN";
+
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-8">
-      <h1 className="text-3xl font-semibold text-zinc-900">Πινακας Admin</h1>
-      {session.role === "SUPER_ADMIN" ? (
-        <div className="flex gap-3">
-          <Link
-            href="/app/admin"
-            className="rounded-lg border border-zinc-300 px-3 py-1.5 text-sm text-zinc-900 hover:bg-zinc-100"
-          >
-            Πισω σε ολους τους bosses
-          </Link>
-        </div>
-      ) : null}
+    <PageShell>
+      <PageHeader
+        title="Πινακας Admin"
+        backHref={isSuperAdmin ? "/app/admin" : undefined}
+        backLabel="Πισω στις εταιρειες"
+      />
       <section className="grid gap-4 sm:grid-cols-2">
-        <article className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <article className={`${cardClass} p-5`}>
           <p className="text-sm text-zinc-500">Ενεργες πισινες</p>
           <p className="mt-1 text-3xl font-semibold text-zinc-900">{poolCount}</p>
         </article>
-        <article className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <article className={`${cardClass} p-5`}>
           <p className="text-sm text-zinc-500">Συνολικες επισκεψεις</p>
           <p className="mt-1 text-3xl font-semibold text-zinc-900">{visitCount}</p>
         </article>
@@ -111,34 +113,22 @@ export default async function AdminDashboardPage({ searchParams }: AdminDashboar
 
       <section className="grid gap-4 sm:grid-cols-2">
         <Link
-          href={
-            session.role === "SUPER_ADMIN"
-              ? `/app/admin/pools?companyId=${selectedCompanyId}`
-              : "/app/admin/pools"
-          }
-          className="rounded-2xl border border-zinc-200 bg-white p-5 text-zinc-900 shadow-sm transition hover:border-zinc-300"
+          href={adminHref("/app/admin/pools", { companyId: selectedCompanyId, isSuperAdmin })}
+          className={`${cardClass} block p-5 text-zinc-900 transition active:border-zinc-300`}
         >
           <h2 className="text-xl font-semibold">Διαχειριση Πισινων</h2>
           <p className="mt-1 text-zinc-600">Δημιουργια και διαχειριση πισινων της εταιρειας.</p>
         </Link>
         <Link
-          href={
-            session.role === "SUPER_ADMIN"
-              ? `/app/admin/visits?companyId=${selectedCompanyId}`
-              : "/app/admin/visits"
-          }
-          className="rounded-2xl border border-zinc-200 bg-white p-5 text-zinc-900 shadow-sm transition hover:border-zinc-300"
+          href={adminHref("/app/admin/visits", { companyId: selectedCompanyId, isSuperAdmin })}
+          className={`${cardClass} block p-5 text-zinc-900 transition active:border-zinc-300`}
         >
           <h2 className="text-xl font-semibold">Αναφορες Επισκεψεων</h2>
           <p className="mt-1 text-zinc-600">Λιστα επισκεψεων και λεπτομερειες.</p>
         </Link>
         <Link
-          href={
-            session.role === "SUPER_ADMIN"
-              ? `/app/admin/reports?companyId=${selectedCompanyId}`
-              : "/app/admin/reports"
-          }
-          className="rounded-2xl border border-zinc-200 bg-white p-5 text-zinc-900 shadow-sm transition hover:border-zinc-300 sm:col-span-2"
+          href={adminHref("/app/admin/reports", { companyId: selectedCompanyId, isSuperAdmin })}
+          className={`${cardClass} block p-5 text-zinc-900 transition active:border-zinc-300 sm:col-span-2`}
         >
           <h2 className="text-xl font-semibold">Reports & Στατιστικα</h2>
           <p className="mt-1 text-zinc-600">
@@ -146,19 +136,15 @@ export default async function AdminDashboardPage({ searchParams }: AdminDashboar
           </p>
         </Link>
         <Link
-          href={
-            session.role === "SUPER_ADMIN"
-              ? `/app/admin/team?companyId=${selectedCompanyId}`
-              : "/app/admin/team"
-          }
-          className="rounded-2xl border border-zinc-200 bg-white p-5 text-zinc-900 shadow-sm transition hover:border-zinc-300"
+          href={adminHref("/app/admin/team", { companyId: selectedCompanyId, isSuperAdmin })}
+          className={`${cardClass} block p-5 text-zinc-900 transition active:border-zinc-300`}
         >
           <h2 className="text-xl font-semibold">Διαχειριση Ομαδας</h2>
           <p className="mt-1 text-zinc-600">Διαχειριση λογαριασμων boss και τεχνικων.</p>
         </Link>
       </section>
 
-      <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <section className={cardClass}>
         <h2 className="text-xl font-semibold text-zinc-900">Τελευταιες επισκεψεις</h2>
         <div className="mt-4 space-y-3">
           {recentVisits.length === 0 ? (
@@ -177,6 +163,6 @@ export default async function AdminDashboardPage({ searchParams }: AdminDashboar
           )}
         </div>
       </section>
-    </main>
+    </PageShell>
   );
 }
