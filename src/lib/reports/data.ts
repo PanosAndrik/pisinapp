@@ -186,17 +186,34 @@ export function buildTrend(
   visits: ReportVisit[],
   field: "ph" | "chlorinePpm" | "pressureBar",
 ): TrendPoint[] {
+  function toNumberOrNull(value: unknown): number | null {
+    if (value == null) return null;
+    if (typeof value === "number") return Number.isFinite(value) ? value : null;
+    if (typeof value === "string") {
+      const n = Number(value);
+      return Number.isFinite(n) ? n : null;
+    }
+    // Prisma Decimal instances have `toNumber()`.
+    const maybeDecimal = value as { toNumber?: () => number };
+    if (typeof maybeDecimal.toNumber === "function") {
+      const n = maybeDecimal.toNumber();
+      return Number.isFinite(n) ? n : null;
+    }
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  }
+
   return [...visits]
     .sort((a, b) => a.performedAt.getTime() - b.performedAt.getTime())
     .map((v) => {
-      const raw = v[field];
-      const value = raw != null ? Number(raw) : NaN;
+      const value = toNumberOrNull(v[field]);
+      if (value == null) return null;
       return {
         date: v.performedAt.toLocaleDateString("el-GR"),
         value,
       };
     })
-    .filter((p) => Number.isFinite(p.value));
+    .filter((p): p is TrendPoint => p != null);
 }
 
 export function countAlertsBySeverity(rows: PoolAlertRow[]) {

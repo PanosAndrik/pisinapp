@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import { PageHeader } from "@/components/ui/page-header";
 import { PageShell } from "@/components/ui/page-shell";
 import { btnPrimaryClass, cardClass, fieldClass } from "@/components/ui/field-styles";
+import { SeverityBadge } from "@/components/reports/severity-badge";
 import { adminHref } from "@/lib/admin-nav";
 import { requireAdminSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { loadPoolAlertRows } from "@/lib/reports/data";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +43,34 @@ async function createPool(formData: FormData) {
   revalidatePath("/app/admin");
 }
 
+async function deletePool(formData: FormData) {
+  "use server";
+
+  const session = await requireAdminSession();
+  const poolId = String(formData.get("poolId") ?? "").trim();
+  if (!poolId) return;
+
+  const targetCompanyIdRaw = String(formData.get("companyId") ?? "").trim();
+  const companyId =
+    session.role === "SUPER_ADMIN" && targetCompanyIdRaw ? targetCompanyIdRaw : session.companyId;
+
+  const existing = await prisma.pool.findFirst({
+    where: { id: poolId, companyId },
+    select: { id: true },
+  });
+  if (!existing) return;
+
+  await prisma.pool.update({
+    where: { id: poolId },
+    data: { isActive: false },
+  });
+
+  revalidatePath("/app/admin/pools");
+  revalidatePath("/app/admin");
+
+  redirect(adminHref("/app/admin/pools", { companyId, isSuperAdmin: session.role === "SUPER_ADMIN" }));
+}
+
 type AdminPoolsPageProps = {
   searchParams: Promise<{ companyId?: string }>;
 };
@@ -55,6 +86,7 @@ export default async function AdminPoolsPage({ searchParams }: AdminPoolsPagePro
   });
 
   const isSuperAdmin = session.role === "SUPER_ADMIN";
+  const poolAlerts = await loadPoolAlertRows(companyId);
 
   return (
     <PageShell>
@@ -95,20 +127,72 @@ export default async function AdminPoolsPage({ searchParams }: AdminPoolsPagePro
             <p className="text-zinc-600">Δεν υπαρχουν πισινες ακομα. Προσθεσε την πρωτη.</p>
           ) : (
             pools.map((pool) => (
-              <Link
-                key={pool.id}
-                href={adminHref(`/app/admin/pools/${pool.id}`, { companyId, isSuperAdmin })}
-                className="block rounded-xl border border-zinc-200 p-4 transition hover:border-zinc-300 hover:bg-zinc-50"
-              >
-                <p className="font-semibold text-zinc-900">
-                  {pool.code} - {pool.clientName}
-                </p>
-                <p className="text-sm text-zinc-600">{pool.address ?? "Χωρις διευθυνση"}</p>
-                <p className="text-sm text-zinc-600">
-                  Ογκος: {pool.volumeLiters?.toLocaleString("el-GR") ?? "-"} L
-                </p>
-                <p className="mt-2 text-xs font-medium text-zinc-500">Στατιστικα & επισκεψεις →</p>
-              </Link>
+              (() => {
+                const row = poolAlerts.find((r) => r.poolId === pool.id) ?? null;
+                const poolHref = adminHref(`/app/admin/pools/${pool.id}`, { companyId, isSuperAdmin });
+                const editHref = adminHref(`/app/admin/pools/${pool.id}/edit`, {
+                  companyId,
+                  isSuperAdmin,
+                });
+
+                return (
+                  <article
+                    key={pool.id}
+                    className="rounded-xl border border-zinc-200 p-4 transition hover:border-zinc-300 hover:bg-zinc-50"
+                  >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0">
+                        <Link href={poolHref} className="block">
+                          <p className="font-semibold text-zinc-900">
+                            {pool.code} - {pool.clientName}
+                          </p>
+                        </Link>
+                        <p className="text-sm text-zinc-600">{pool.address ?? "Χωρις διευθυνση"}</p>
+                        <p className="text-sm text-zinc-600">
+                          Ογκος: {pool.volumeLiters?.toLocaleString("el-GR") ?? "-"} L
+                        </p>
+                        <div className="mt-1 text-xs text-zinc-500">
+                          Τελευταία επίσκεψη:{" "}
+                          {row?.lastVisitAt ? new Date(row.lastVisitAt).toLocaleDateString("el-GR") : "—"}
+                          {row?.daysWithoutVisit != null ? ` · ${row.daysWithoutVisit} ημερες` : ""}
+                        </div>
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {row?.alerts.length ? (
+                            row.alerts.slice(0, 2).map((a, i) => (
+                              <SeverityBadge key={`${pool.id}-a-${i}`} severity={a.severity} />
+                            ))
+                          ) : (
+                            <span className="text-xs font-medium text-emerald-700">OK</span>
+                          )}
+                          {row?.alerts.length && row.alerts.length > 2 ? (
+                            <span className="text-xs text-zinc-500">+{row.alerts.length - 2}</span>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        <Link
+                          href={editHref}
+                          className="touch-target inline-flex items-center justify-center rounded-lg border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-900 hover:bg-zinc-100"
+                        >
+                          Edit
+                        </Link>
+
+                        <form action={deletePool} className="contents">
+                          <input type="hidden" name="poolId" value={pool.id} />
+                          {isSuperAdmin ? <input type="hidden" name="companyId" value={companyId} /> : null}
+                          <button
+                            type="submit"
+                            className="touch-target inline-flex items-center justify-center rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-100"
+                          >
+                            Delete
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })()
             ))
           )}
         </div>
